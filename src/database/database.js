@@ -5,11 +5,11 @@ const parameters = {
     host: config.host,
     database: config.database,
     user: config.user,
-    password: config.password
-
+    password: config.password,
+    port: config.port
 }
 console.log("🚀 ~ file: database.js ~ line 11 ~ parameters", parameters)
-const connection = mysql.createConnection(parameters);
+const connection = mysql.createPool(parameters);
 
 const getConnection = () => {
     return connection;
