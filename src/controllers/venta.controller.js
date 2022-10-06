@@ -10,34 +10,48 @@ const addVenta = async (req, res) => {
     const connection = await getConnection();
 
     await connection.beginTransaction()
-        .then(() => {
-            let qry = connection.query("INSERT INTO Venta SET ?", Venta, (err, result, fields) => {
-                if (!err) {
-                    let idVenta = result.insertId
-                    ProductosVenta.forEach(element => {
-                        let PV = {
-                            Venta_id: idVenta,
-                            Producto_id: element._id,
-                            Cantidad: element.Cantidad,
-                            PrecioVentaProducto: element.Precio
-                        }
-                        connection.query("INSERT INTO ProductoVenta SET ?", PV)
-                    });
-                }
 
-            })
-            console.log("qry add venta", qry)
-        })
-        .then(() => {
-            connection.commit();
-            console.log("commit")
-            res.sendStatus(200)
-        })
-        .catch((err) => {
+    await connection.query("INSERT INTO Venta SET ?", Venta, async (err, result, fields) => {
+        try {
+            if (!err) {
+                let idVenta = result.insertId
+                ProductosVenta.forEach(async (element) => {
+                    let PV = {
+                        Venta_id: idVenta,
+                        Producto_id: element._id,
+                        Cantidad: element.Cantidad,
+                        PrecioVentaProducto: element.Precio
+                    }
+                        await connection.query("INSERT INTO ProductoVenta SET ?", PV)
+                })
+                connection.commit();
+                console.log("commit")
+                res.sendStatus(200)
+            }
+            else {
+                throw new Error("Error al insertar en tabla principal")
+            }
+        } catch (error) {
             connection.rollback();
             console.log("ROLLBACK")
             res.sendStatus(500)
-        })
+        }
+
+    })
+
+
+    /* .then(() => {
+        connection.commit();
+        console.log("commit")
+        res.sendStatus(200)
+    })
+    .catch((err) => {
+        connection.rollback();
+        console.log("ROLLBACK")
+        res.sendStatus(500)
+    }) */
+
+
 
 }
 
