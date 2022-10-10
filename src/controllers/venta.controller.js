@@ -4,55 +4,30 @@ const addVenta = async (req, res) => {
 
     const { Venta, ProductosVenta } = req.body
 
-    console.log(Venta)
-    console.log(ProductosVenta)
-
     const connection = await getConnection();
 
-    await connection.beginTransaction()
-
-    await connection.query("INSERT INTO Venta SET ?", Venta, async (err, result, fields) => {
-        try {
-            if (!err) {
-                let idVenta = result.insertId
-                ProductosVenta.forEach(async (element) => {
-                    let PV = {
-                        Venta_id: idVenta,
-                        Producto_id: element._id,
-                        Cantidad: element.Cantidad,
-                        PrecioVentaProducto: element.Precio
-                    }
-                        await connection.query("INSERT INTO ProductoVenta SET ?", PV)
-                })
-                connection.commit();
-                console.log("commit")
-                res.sendStatus(200)
+    try {
+        await connection.query('START TRANSACTION')
+        const resVenta = await connection.query("INSERT INTO Venta SET ?", Venta)
+        const idVenta = resVenta.insertId
+        for (const key in ProductosVenta) {
+            let PV = {
+                Venta_id: idVenta,
+                Producto_id: ProductosVenta[key]._id,
+                Cantidad: ProductosVenta[key].Cantidad,
+                PrecioVentaProducto: ProductosVenta[key].Precio
             }
-            else {
-                throw new Error("Error al insertar en tabla principal")
-            }
-        } catch (error) {
-            connection.rollback();
-            console.log("ROLLBACK")
-            res.sendStatus(500)
+            await connection.query("INSERT INTO ProductoVenta SET ?", PV)
         }
-
-    })
-
-
-    /* .then(() => {
-        connection.commit();
+        
+        await connection.query("commit")
         console.log("commit")
         res.sendStatus(200)
-    })
-    .catch((err) => {
-        connection.rollback();
-        console.log("ROLLBACK")
+    } catch (error) {
+        await connection.query("rollback")
+        console.log("🚀rollback")
         res.sendStatus(500)
-    }) */
-
-
-
+    }
 }
 
 const getHistorial30Dias = async (req, res) => {
@@ -105,7 +80,8 @@ const getEstadisticas = async (req, res) => {
         const connection = await getConnection();
         let qry = "SELECT count(_id) NroVentas, COALESCE(sum(PrecioTotalVenta), 0) SumaVentas "
         qry += "FROM venta "
-        qry += "where Fecha BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:00';"
+        qry += "where DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:00';"
+        //qry += "where Fecha BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:00';"
         const result = await connection.query(qry);
         res.json(result);
     } catch (error) {
