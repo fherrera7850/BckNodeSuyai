@@ -15,7 +15,7 @@ Content-Type: application/json
 {
     "MedioPago": "3",
     "PrecioTotalVenta": "69",
-    "Cliente_id": "xx",
+    "Cliente_id": "1",
     "Fecha": "2022-09-26T17:30:00.888Z",
     "Dcto": "0"
 }
