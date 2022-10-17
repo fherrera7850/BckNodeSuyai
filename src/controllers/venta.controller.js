@@ -45,6 +45,7 @@ const getHistorial30Dias = async (req, res) => {
         qry += 'WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day) '
         qry += 'GROUP by FechaVenta '
         qry += 'order by FechaVenta desc'
+        console.log("🚀 ~ file: venta.controller.js ~ line 48 ~ getHistorial30Dias ~ qry", qry)
 
         const resultAgrupados = await connection.query(qry);
 
@@ -56,17 +57,18 @@ const getHistorial30Dias = async (req, res) => {
             qry2 += 'WHERE venta.Cliente_id=cliente._id and '
             qry2 += 'fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day) '
             qry2 += 'order by fecha desc'
+            console.log("🚀 ~ file: venta.controller.js ~ line 60 ~ getHistorial30Dias ~ qry2", qry2)
 
             const resultVentas = await connection.query(qry2);
 
-            console.log(resultAgrupados[0], resultVentas[0])
+            //console.log(resultAgrupados[0], resultVentas[0])
 
             resultAgrupados.forEach(parent => {
                 resultVentas.forEach(child => {
                     let fecha1 = new Date(parent.FechaVenta).toLocaleDateString()
                     
                     let fecha2 = new Date(child.Fecha).toLocaleDateString()
-                    console.log("🚀 ~ file: venta.controller.js ~ line 72 ~ getHistorial30Dias ~ child.Fecha.split(T)", child.Fecha.split("T")[0])
+                    //console.log("🚀 ~ file: venta.controller.js ~ line 72 ~ getHistorial30Dias ~ child.Fecha.split(T)", child.Fecha.split("T")[0])
                     //console.log("fechaFormateada", fecha1, fecha2)
                     if (parent.FechaVenta === child.Fecha.split("T")[0]) {
                         
@@ -76,7 +78,7 @@ const getHistorial30Dias = async (req, res) => {
                     }
                 });
             });
-            console.log(resultAgrupados)
+            //console.log(resultAgrupados)
             res.json(resultAgrupados);
         }
         else {
@@ -97,7 +99,9 @@ const getEstadisticas = async (req, res) => {
         let qry = "SELECT count(_id) NroVentas, COALESCE(sum(PrecioTotalVenta), 0) SumaVentas "
         qry += "FROM venta "
         qry += "where DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:00';"
+        
         //qry += "where Fecha BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:00';"
+        
         const result = await connection.query(qry);
         res.json(result);
     } catch (error) {
