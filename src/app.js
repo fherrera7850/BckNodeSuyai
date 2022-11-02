@@ -5,6 +5,7 @@ import languageRoutes from "./routes/language.routes";
 import productoRoutes from "./routes/producto.routes";
 import ventaRoutes from "./routes/venta.routes";
 import productoVentaRoutes from "./routes/productoVenta.routes";
+import clienteRoutes from "./routes/cliente.routes";
 
 const app = express();
 
@@ -21,5 +22,6 @@ app.use("/api/languages", languageRoutes);
 app.use("/api/producto", productoRoutes);
 app.use("/api/venta", ventaRoutes);
 app.use("/api/productoventa", productoVentaRoutes);
+app.use("/api/cliente", clienteRoutes);
 
 export default app;
