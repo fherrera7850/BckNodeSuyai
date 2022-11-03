@@ -52,7 +52,7 @@ const getHistorial30Dias = async (req, res) => {
         if (resultAgrupados.length > 0) {
             resultAgrupados.forEach(element => element.Ventas = [])
 
-            let qry2 = 'SELECT PrecioTotalVenta,MedioPago,cliente.Nombre Cliente, DATE_FORMAT(DATE_SUB(fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") as Fecha, observacion as Observacion '
+            let qry2 = 'SELECT PrecioTotalVenta,MedioPago,cliente.Nombre Cliente, DATE_FORMAT(DATE_SUB(fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") as Fecha, venta.observacion as Observacion '
             qry2 += 'from venta, cliente '
             qry2 += 'WHERE venta.Cliente_id=cliente._id and '
             qry2 += 'fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day) '
