@@ -6,7 +6,8 @@ const parameters = {
     database: config.database,
     user: config.user,
     password: config.password,
-    port: config.port
+    port: config.port,
+    connectTimeout: 100000
 }
 console.log("🚀 ~ file: database.js ~ line 11 ~ parameters", parameters)
 const connection = mysql.createPool(parameters);
