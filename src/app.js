@@ -10,9 +10,7 @@ import clienteRoutes from "./routes/cliente.routes";
 const app = express();
 
 // Settings
-console.log("🚀 ~ file: app.js ~ line 14 ~ process.env.PORT", process.env.PORT)
-
-app.set("port", process.env.PORT || 4000);
+app.set("port", process.env.PORT);
 
 
 // Middlewares
