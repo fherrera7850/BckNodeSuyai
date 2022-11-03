@@ -10,7 +10,7 @@ import clienteRoutes from "./routes/cliente.routes";
 const app = express();
 
 // Settings
-app.set("port", process.env.PORT);
+app.set("port", 5578);
 
 
 // Middlewares
