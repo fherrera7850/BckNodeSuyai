@@ -33,22 +33,23 @@ var addProductoVenta = /*#__PURE__*/function () {
 
           case 6:
             result = _context.sent;
+            console.log("🚀 ~ file: productoVenta.controller.js ~ line 7 ~ addProductoVenta ~ req.body", req.body);
             res.json(result);
-            _context.next = 14;
+            _context.next = 15;
             break;
 
-          case 10:
-            _context.prev = 10;
+          case 11:
+            _context.prev = 11;
             _context.t0 = _context["catch"](0);
             res.status(500);
             res.send(_context.t0.message);
 
-          case 14:
+          case 15:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[0, 10]]);
+    }, _callee, null, [[0, 11]]);
   }));
 
   return function addProductoVenta(_x, _x2) {
