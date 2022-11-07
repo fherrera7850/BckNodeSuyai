@@ -5,9 +5,10 @@ var _app = _interopRequireDefault(require("./app"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 var main = function main() {
-  _app["default"].listen(_app["default"].get("port"));
+  _app["default"].listen(_app["default"].get("port")); //console.log(`Server on port ${app.get("port")}`);
 
-  console.log("Server on port ".concat(_app["default"].get("port")));
+
+  console.log("listen on " + process.env.PORT);
 };
 
 main();

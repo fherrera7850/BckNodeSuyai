@@ -17,19 +17,30 @@ var _venta = _interopRequireDefault(require("./routes/venta.routes"));
 
 var _productoVenta = _interopRequireDefault(require("./routes/productoVenta.routes"));
 
+var _cliente = _interopRequireDefault(require("./routes/cliente.routes"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 // Routes
 var app = (0, _express["default"])(); // Settings
 
-app.set("port", 4000); // Middlewares
+app.set("port", process.env.PORT || 4000); // Middlewares
 
 app.use((0, _morgan["default"])("dev"));
-app.use(_express["default"].json()); // Routes
+app.use(_express["default"].json({
+  limit: "50mb",
+  extended: true
+}));
+app.use(_express["default"].urlencoded({
+  limit: "50mb",
+  extended: true,
+  parameterLimit: 50000
+})); // Routes
 
 app.use("/api/languages", _language["default"]);
 app.use("/api/producto", _producto["default"]);
 app.use("/api/venta", _venta["default"]);
 app.use("/api/productoventa", _productoVenta["default"]);
+app.use("/api/cliente", _cliente["default"]);
 var _default = app;
 exports["default"] = _default;

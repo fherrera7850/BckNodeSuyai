@@ -16,108 +16,83 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 var addVenta = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(req, res) {
-    var _req$body, Venta, ProductosVenta, connection;
+  var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(req, res) {
+    var _req$body, Venta, ProductosVenta, fx, connection, resVenta, idVenta, key, PV;
 
-    return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+    return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) {
-        switch (_context3.prev = _context3.next) {
+        switch (_context.prev = _context.next) {
           case 0:
             _req$body = req.body, Venta = _req$body.Venta, ProductosVenta = _req$body.ProductosVenta;
-            console.log(Venta);
-            console.log(ProductosVenta);
-            _context3.next = 5;
+            fx = Venta.Fecha.toString();
+            fx = fx.replace(/T/g, " ");
+            fx = fx.replace(/Z/g, "");
+            Venta.Fecha = fx;
+            console.log("🚀 ~ file: venta.controller.js ~ line 8 ~ addVenta ~ fx", fx);
+            _context.next = 8;
             return (0, _database.getConnection)();
 
-          case 5:
-            connection = _context3.sent;
-            _context3.next = 8;
-            return connection.beginTransaction();
-
           case 8:
-            _context3.next = 10;
-            return connection.query("INSERT INTO Venta SET ?", Venta, /*#__PURE__*/function () {
-              var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(err, result, fields) {
-                var idVenta;
-                return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-                  while (1) {
-                    switch (_context2.prev = _context2.next) {
-                      case 0:
-                        _context2.prev = 0;
+            connection = _context.sent;
+            _context.prev = 9;
+            _context.next = 12;
+            return connection.query('START TRANSACTION');
 
-                        if (err) {
-                          _context2.next = 9;
-                          break;
-                        }
+          case 12:
+            _context.next = 14;
+            return connection.query("INSERT INTO venta SET ?", Venta);
 
-                        idVenta = result.insertId;
-                        ProductosVenta.forEach( /*#__PURE__*/function () {
-                          var _ref3 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(element) {
-                            var PV;
-                            return _regeneratorRuntime().wrap(function _callee$(_context) {
-                              while (1) {
-                                switch (_context.prev = _context.next) {
-                                  case 0:
-                                    PV = {
-                                      Venta_id: idVenta,
-                                      Producto_id: element._id,
-                                      Cantidad: element.Cantidad,
-                                      PrecioVentaProducto: element.Precio
-                                    };
-                                    _context.next = 3;
-                                    return connection.query("INSERT INTO ProductoVenta SET ?", PV);
+          case 14:
+            resVenta = _context.sent;
+            idVenta = resVenta.insertId;
+            _context.t0 = _regeneratorRuntime().keys(ProductosVenta);
 
-                                  case 3:
-                                  case "end":
-                                    return _context.stop();
-                                }
-                              }
-                            }, _callee);
-                          }));
+          case 17:
+            if ((_context.t1 = _context.t0()).done) {
+              _context.next = 24;
+              break;
+            }
 
-                          return function (_x6) {
-                            return _ref3.apply(this, arguments);
-                          };
-                        }());
-                        connection.commit();
-                        console.log("commit");
-                        res.sendStatus(200);
-                        _context2.next = 10;
-                        break;
+            key = _context.t1.value;
+            PV = {
+              Venta_id: idVenta,
+              Producto_id: ProductosVenta[key]._id,
+              Cantidad: ProductosVenta[key].Cantidad,
+              PrecioVentaProducto: ProductosVenta[key].Precio
+            };
+            _context.next = 22;
+            return connection.query("INSERT INTO productoventa SET ?", PV);
 
-                      case 9:
-                        throw new Error("Error al insertar en tabla principal");
+          case 22:
+            _context.next = 17;
+            break;
 
-                      case 10:
-                        _context2.next = 17;
-                        break;
+          case 24:
+            _context.next = 26;
+            return connection.query("commit");
 
-                      case 12:
-                        _context2.prev = 12;
-                        _context2.t0 = _context2["catch"](0);
-                        connection.rollback();
-                        console.log("ROLLBACK");
-                        res.sendStatus(500);
+          case 26:
+            console.log("commit");
+            res.sendStatus(200);
+            _context.next = 36;
+            break;
 
-                      case 17:
-                      case "end":
-                        return _context2.stop();
-                    }
-                  }
-                }, _callee2, null, [[0, 12]]);
-              }));
+          case 30:
+            _context.prev = 30;
+            _context.t2 = _context["catch"](9);
+            _context.next = 34;
+            return connection.query("rollback");
 
-              return function (_x3, _x4, _x5) {
-                return _ref2.apply(this, arguments);
-              };
-            }());
+          case 34:
+            console.log("🚀rollback", _context.t2);
+            res.sendStatus(500);
 
-          case 10:
+          case 36:
           case "end":
-            return _context3.stop();
+            return _context.stop();
         }
       }
-    }, _callee3);
+    }, _callee, null, [[9, 30]]);
   }));
 
   return function addVenta(_x, _x2) {
@@ -126,131 +101,172 @@ var addVenta = /*#__PURE__*/function () {
 }();
 
 var getHistorial30Dias = /*#__PURE__*/function () {
-  var _ref4 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(req, res) {
+  var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(req, res) {
     var connection, qry, resultAgrupados, qry2, resultVentas;
-    return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+    return _regeneratorRuntime().wrap(function _callee2$(_context2) {
       while (1) {
-        switch (_context4.prev = _context4.next) {
+        switch (_context2.prev = _context2.next) {
           case 0:
-            _context4.prev = 0;
-            _context4.next = 3;
+            _context2.prev = 0;
+            _context2.next = 3;
             return (0, _database.getConnection)();
 
           case 3:
-            connection = _context4.sent;
-            qry = 'SELECT count(_id) as NroVentas,sum(Preciototalventa) as SumaVentas, DATE_FORMAT(fecha, "%Y-%m-%dT%H:%i:%s") as FechaVenta ';
-            qry += 'from Venta ';
+            connection = _context2.sent;
+            qry = 'SELECT count(_id) as NroVentas,sum(Preciototalventa) as SumaVentas, DATE_FORMAT(DATE_SUB(fecha, INTERVAL 3 HOUR), "%Y-%m-%d") as FechaVenta ';
+            qry += 'from venta ';
             qry += 'WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day) ';
-            qry += 'GROUP by day(fecha) ';
-            qry += 'order by fecha desc';
-            _context4.next = 11;
+            qry += 'GROUP by FechaVenta ';
+            qry += 'order by FechaVenta desc'; //console.log("🚀 ~ file: venta.controller.js ~ line 48 ~ getHistorial30Dias ~ qry", qry)
+
+            _context2.next = 11;
             return connection.query(qry);
 
           case 11:
-            resultAgrupados = _context4.sent;
+            resultAgrupados = _context2.sent;
+
+            if (!(resultAgrupados.length > 0)) {
+              _context2.next = 26;
+              break;
+            }
+
             resultAgrupados.forEach(function (element) {
-              element.Ventas = [];
+              return element.Ventas = [];
             });
-            qry2 = 'SELECT PrecioTotalVenta,MedioPago,cliente.Nombre Cliente, fecha Fecha ';
-            qry2 += 'from Venta, cliente ';
-            qry2 += 'WHERE Venta.Cliente_id=cliente._id and ';
+            qry2 = 'SELECT PrecioTotalVenta,MedioPago,cliente.Nombre Cliente, DATE_FORMAT(DATE_SUB(fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") as Fecha, venta.observacion as Observacion ';
+            qry2 += 'from venta, cliente ';
+            qry2 += 'WHERE venta.Cliente_id=cliente._id and ';
             qry2 += 'fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day) ';
-            qry2 += 'order by fecha desc';
-            _context4.next = 20;
+            qry2 += 'order by fecha desc'; //console.log("🚀 ~ file: venta.controller.js ~ line 60 ~ getHistorial30Dias ~ qry2", qry2)
+
+            _context2.next = 21;
             return connection.query(qry2);
 
-          case 20:
-            resultVentas = _context4.sent;
-            console.log(resultAgrupados[0], resultVentas[0]);
+          case 21:
+            resultVentas = _context2.sent;
+            //console.log(resultAgrupados[0], resultVentas[0])
             resultAgrupados.forEach(function (parent) {
               resultVentas.forEach(function (child) {
-                var fecha1 = new Date(parent.FechaVenta).toLocaleDateString();
-                var fecha2 = new Date(child.Fecha).toLocaleDateString();
-                console.log("fechaFormateada", fecha1, fecha2);
-
-                if (fecha1 === fecha2) {
-                  console.log("iguales", fecha1, fecha2);
+                if (parent.FechaVenta === child.Fecha.split("T")[0]) {
                   parent.Ventas.push(child);
                 }
               });
             });
-            console.log(resultAgrupados);
             res.json(resultAgrupados);
-            _context4.next = 31;
+            _context2.next = 27;
             break;
 
-          case 27:
-            _context4.prev = 27;
-            _context4.t0 = _context4["catch"](0);
-            res.status(500);
-            res.send(_context4.t0.message);
+          case 26:
+            res.json({
+              ErrorMessage: "No hay ventas para mostrar"
+            });
 
-          case 31:
+          case 27:
+            _context2.next = 34;
+            break;
+
+          case 29:
+            _context2.prev = 29;
+            _context2.t0 = _context2["catch"](0);
+            console.error(_context2.t0);
+            res.status(500);
+            res.send(_context2.t0.toString());
+
+          case 34:
           case "end":
-            return _context4.stop();
+            return _context2.stop();
         }
       }
-    }, _callee4, null, [[0, 27]]);
+    }, _callee2, null, [[0, 29]]);
   }));
 
-  return function getHistorial30Dias(_x7, _x8) {
-    return _ref4.apply(this, arguments);
+  return function getHistorial30Dias(_x3, _x4) {
+    return _ref2.apply(this, arguments);
   };
 }();
 
 var getEstadisticas = /*#__PURE__*/function () {
-  var _ref5 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(req, res) {
-    var connection, qry, result;
-    return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+  var _ref3 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(req, res) {
+    var connection, qryTotales, resultTotales, qryMediosDePago, resultMediosDePago, qryMasVendidos, resultMasVendidos;
+    return _regeneratorRuntime().wrap(function _callee3$(_context3) {
       while (1) {
-        switch (_context5.prev = _context5.next) {
+        switch (_context3.prev = _context3.next) {
           case 0:
-            _context5.prev = 0;
-            _context5.next = 3;
+            _context3.prev = 0;
+            _context3.next = 3;
             return (0, _database.getConnection)();
 
           case 3:
-            connection = _context5.sent;
-            qry = "SELECT count(_id) NroVentas, COALESCE(sum(PrecioTotalVenta), 0) SumaVentas ";
-            qry += "FROM venta ";
-            qry += "where Fecha BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:00';";
-            _context5.next = 9;
-            return connection.query(qry);
+            connection = _context3.sent;
+            qryTotales = "SELECT ";
+            qryTotales += "count(_id) NroVentas, ";
+            qryTotales += "COALESCE(sum(PrecioTotalVenta), 0) SumaVentas, ";
+            qryTotales += "avg(preciototalventa) PromedioVentas, ";
+            qryTotales += "GananciaVentas ";
+            qryTotales += "FROM venta, (select (sum(pv.PrecioVentaProducto*pv.cantidad) - sum(p.Costo*pv.cantidad)) GananciaVentas ";
+            qryTotales += "from productoventa pv inner join producto p ";
+            qryTotales += "on pv.Producto_id=p._id inner join venta v ";
+            qryTotales += "on v._id=pv.Venta_id ";
+            qryTotales += "where ";
+            qryTotales += "DATE_SUB(v.Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59') temp2 where  ";
+            qryTotales += "DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59'";
+            _context3.next = 18;
+            return connection.query(qryTotales);
 
-          case 9:
-            result = _context5.sent;
-            res.json(result);
-            _context5.next = 17;
+          case 18:
+            resultTotales = _context3.sent;
+            console.log("🚀 ~  resultTotales", resultTotales);
+            qryMediosDePago = "select ";
+            qryMediosDePago += "CASE ";
+            qryMediosDePago += "WHEN mediopago = 0 THEN 'Efectivo' ";
+            qryMediosDePago += "WHEN mediopago = 1 THEN 'Transferencia' ";
+            qryMediosDePago += "WHEN mediopago = 2 THEN 'Tarjeta' ";
+            qryMediosDePago += "ELSE '-' ";
+            qryMediosDePago += "END mediopago, count(mediopago) cantidad ";
+            qryMediosDePago += "from venta ";
+            qryMediosDePago += "group by mediopago order by cantidad desc;";
+            _context3.next = 31;
+            return connection.query(qryMediosDePago);
+
+          case 31:
+            resultMediosDePago = _context3.sent;
+            console.log("🚀 ~  resultMediosDePago", resultMediosDePago);
+            resultTotales[0].MediosDePago = resultMediosDePago;
+            qryMasVendidos = "select p.nombre, sum(cantidad) cantidad,sum(pv.PrecioVentaProducto*pv.Cantidad) total ";
+            qryMasVendidos += "from productoventa pv inner join producto p ";
+            qryMasVendidos += "on p._id=pv.Producto_id ";
+            qryMasVendidos += "group by pv.producto_id ";
+            qryMasVendidos += "order by cantidad desc;";
+            _context3.next = 41;
+            return connection.query(qryMasVendidos);
+
+          case 41:
+            resultMasVendidos = _context3.sent;
+            console.log("🚀 ~ resultMasVendidos", resultMasVendidos);
+            resultTotales[0].MasVendidos = resultMasVendidos; //const result = await connection.query(qryTotales);
+
+            res.json(resultTotales);
+            _context3.next = 51;
             break;
 
-          case 13:
-            _context5.prev = 13;
-            _context5.t0 = _context5["catch"](0);
+          case 47:
+            _context3.prev = 47;
+            _context3.t0 = _context3["catch"](0);
             res.status(500);
-            res.send(_context5.t0.message);
+            res.send(_context3.t0.message);
 
-          case 17:
+          case 51:
           case "end":
-            return _context5.stop();
+            return _context3.stop();
         }
       }
-    }, _callee5, null, [[0, 13]]);
+    }, _callee3, null, [[0, 47]]);
   }));
 
-  return function getEstadisticas(_x9, _x10) {
-    return _ref5.apply(this, arguments);
+  return function getEstadisticas(_x5, _x6) {
+    return _ref3.apply(this, arguments);
   };
 }();
-/* 
-SELECT count(_id) NroVentas, sum(PrecioTotalVenta) SumaVentas
-FROM `venta`
-where Fecha BETWEEN '2022-09-29 00:00:00' AND '2022-10-03 23:59:00'; */
-//SELECT count(_id) as NroVentas,sum(Preciototalventa) as SumaVentas, DATE_FORMAT(fecha, " %d-%m-%Y") as FechaVenta 
-//from Venta 
-//WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day) 
-//GROUP by day(fecha) 
-//order by fecha desc
-
 
 var methods = {
   addVenta: addVenta,

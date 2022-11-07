@@ -15,53 +15,62 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
-var getProductos = /*#__PURE__*/function () {
+var addCliente = /*#__PURE__*/function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(req, res) {
-    var connection, qry, result;
+    var Cliente, connection;
     return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            _context.prev = 0;
-            _context.next = 3;
+            Cliente = req.body.Cliente;
+            console.log("🚀 ~ file: cliente.controller.js ~ line 6 ~ addCliente ~ Cliente", Cliente);
+            _context.next = 4;
             return (0, _database.getConnection)();
 
-          case 3:
+          case 4:
             connection = _context.sent;
-            qry = "select p.*, count(pv.Producto_id) as Ventas ";
-            qry += "from producto p left join productoventa pv ";
-            qry += "on p._id=pv.Producto_id ";
-            qry += "GROUP by p._id ";
-            qry += "order by ventas desc";
-            _context.next = 11;
-            return connection.query(qry);
+            _context.prev = 5;
+            _context.next = 8;
+            return connection.query('START TRANSACTION');
 
-          case 11:
-            result = _context.sent;
-            res.json(result);
-            _context.next = 19;
+          case 8:
+            _context.next = 10;
+            return connection.query("INSERT INTO cliente SET ?", req.body);
+
+          case 10:
+            _context.next = 12;
+            return connection.query("commit");
+
+          case 12:
+            console.log("commit");
+            res.sendStatus(200);
+            _context.next = 22;
             break;
 
-          case 15:
-            _context.prev = 15;
-            _context.t0 = _context["catch"](0);
-            res.status(500);
-            res.send(_context.t0.message);
+          case 16:
+            _context.prev = 16;
+            _context.t0 = _context["catch"](5);
+            _context.next = 20;
+            return connection.query("rollback");
 
-          case 19:
+          case 20:
+            console.log("🚀rollback", _context.t0);
+            res.sendStatus(500);
+
+          case 22:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[0, 15]]);
+    }, _callee, null, [[5, 16]]);
   }));
 
-  return function getProductos(_x, _x2) {
+  return function addCliente(_x, _x2) {
     return _ref.apply(this, arguments);
   };
 }();
 
 var methods = {
-  getProductos: getProductos
+  addCliente: addCliente
 };
 exports.methods = methods;
