@@ -70,7 +70,50 @@ var addCliente = /*#__PURE__*/function () {
   };
 }();
 
+var getClientes = /*#__PURE__*/function () {
+  var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(req, res) {
+    var connection, qry, result;
+    return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            _context2.prev = 0;
+            _context2.next = 3;
+            return (0, _database.getConnection)();
+
+          case 3:
+            connection = _context2.sent;
+            qry = "select _id,nombre,telefono,direccion,calle,comuna,email,observacion from cliente order by nombre";
+            _context2.next = 7;
+            return connection.query(qry);
+
+          case 7:
+            result = _context2.sent;
+            res.json(result);
+            _context2.next = 15;
+            break;
+
+          case 11:
+            _context2.prev = 11;
+            _context2.t0 = _context2["catch"](0);
+            res.status(500);
+            res.send(_context2.t0.message);
+
+          case 15:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2, null, [[0, 11]]);
+  }));
+
+  return function getClientes(_x3, _x4) {
+    return _ref2.apply(this, arguments);
+  };
+}();
+
 var methods = {
-  addCliente: addCliente
+  addCliente: addCliente,
+  getClientes: getClientes
 };
 exports.methods = methods;

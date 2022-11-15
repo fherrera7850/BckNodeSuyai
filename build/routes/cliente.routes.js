@@ -11,5 +11,6 @@ var _cliente = require("./../controllers/cliente.controller");
 
 var router = (0, _express.Router)();
 router.post("/", _cliente.methods.addCliente);
+router.get("/", _cliente.methods.getClientes);
 var _default = router;
 exports["default"] = _default;

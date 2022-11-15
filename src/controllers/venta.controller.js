@@ -52,12 +52,14 @@ const getHistorial30Dias = async (req, res) => {
         if (resultAgrupados.length > 0) {
             resultAgrupados.forEach(element => element.Ventas = [])
 
-            let qry2 = 'SELECT PrecioTotalVenta,MedioPago,cliente.Nombre Cliente, DATE_FORMAT(DATE_SUB(fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") as Fecha, venta.observacion as Observacion '
-            qry2 += 'from venta, cliente '
-            qry2 += 'WHERE venta.Cliente_id=cliente._id and '
-            qry2 += 'fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day) '
-            qry2 += 'order by fecha desc'
-            //console.log("🚀 ~ file: venta.controller.js ~ line 60 ~ getHistorial30Dias ~ qry2", qry2)
+            let qry2 = 'SELECT sum(pv.Cantidad) CantidadItems, v.PrecioTotalVenta,v.MedioPago,c.Nombre Cliente, DATE_FORMAT(DATE_SUB(v.fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") as Fecha, v.observacion as Observacion '
+            qry2 += 'from venta v left join cliente c '
+            qry2 += 'on v.Cliente_id=c._id '
+            qry2 += 'left join productoventa pv '
+            qry2 += 'on pv.Venta_id=v._id '
+            qry2 += 'WHERE v.fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day)  '
+            qry2 += 'GROUP by v._id '
+            qry2 += 'order by v.fecha desc;'
 
             const resultVentas = await connection.query(qry2);
 

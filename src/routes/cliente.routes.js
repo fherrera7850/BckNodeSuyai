@@ -4,5 +4,6 @@ import { methods as clienteController } from "./../controllers/cliente.controlle
 const router = Router();
 
 router.post("/", clienteController.addCliente)
+router.get("/", clienteController.getClientes)
 
 export default router;

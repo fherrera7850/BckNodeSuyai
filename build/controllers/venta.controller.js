@@ -126,23 +126,25 @@ var getHistorial30Dias = /*#__PURE__*/function () {
             resultAgrupados = _context2.sent;
 
             if (!(resultAgrupados.length > 0)) {
-              _context2.next = 26;
+              _context2.next = 29;
               break;
             }
 
             resultAgrupados.forEach(function (element) {
               return element.Ventas = [];
             });
-            qry2 = 'SELECT PrecioTotalVenta,MedioPago,cliente.Nombre Cliente, DATE_FORMAT(DATE_SUB(fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") as Fecha, venta.observacion as Observacion ';
-            qry2 += 'from venta, cliente ';
-            qry2 += 'WHERE venta.Cliente_id=cliente._id and ';
-            qry2 += 'fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day) ';
-            qry2 += 'order by fecha desc'; //console.log("🚀 ~ file: venta.controller.js ~ line 60 ~ getHistorial30Dias ~ qry2", qry2)
-
-            _context2.next = 21;
+            qry2 = 'SELECT sum(pv.Cantidad) CantidadItems, v.PrecioTotalVenta,v.MedioPago,c.Nombre Cliente, DATE_FORMAT(DATE_SUB(v.fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") as Fecha, v.observacion as Observacion ';
+            qry2 += 'from venta v left join cliente c ';
+            qry2 += 'on v.Cliente_id=c._id ';
+            qry2 += 'left join productoventa pv ';
+            qry2 += 'on pv.Venta_id=v._id ';
+            qry2 += 'WHERE v.fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day)  ';
+            qry2 += 'GROUP by v._id ';
+            qry2 += 'order by v.fecha desc;';
+            _context2.next = 24;
             return connection.query(qry2);
 
-          case 21:
+          case 24:
             resultVentas = _context2.sent;
             //console.log(resultAgrupados[0], resultVentas[0])
             resultAgrupados.forEach(function (parent) {
@@ -153,31 +155,31 @@ var getHistorial30Dias = /*#__PURE__*/function () {
               });
             });
             res.json(resultAgrupados);
-            _context2.next = 27;
+            _context2.next = 30;
             break;
 
-          case 26:
+          case 29:
             res.json({
               ErrorMessage: "No hay ventas para mostrar"
             });
 
-          case 27:
-            _context2.next = 34;
+          case 30:
+            _context2.next = 37;
             break;
 
-          case 29:
-            _context2.prev = 29;
+          case 32:
+            _context2.prev = 32;
             _context2.t0 = _context2["catch"](0);
             console.error(_context2.t0);
             res.status(500);
             res.send(_context2.t0.toString());
 
-          case 34:
+          case 37:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, null, [[0, 29]]);
+    }, _callee2, null, [[0, 32]]);
   }));
 
   return function getHistorial30Dias(_x3, _x4) {

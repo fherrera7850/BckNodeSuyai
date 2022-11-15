@@ -21,6 +21,19 @@ const addCliente = async (req, res) => {
     }
 }
 
+const getClientes = async (req, res) => {
+    try {
+        const connection = await getConnection();
+        let qry = "select _id,nombre,telefono,direccion,calle,comuna,email,observacion from cliente order by nombre"
+        const result = await connection.query(qry);
+        res.json(result);
+    } catch (error) {
+        res.status(500);
+        res.send(error.message);
+    }
+};
+
 export const methods = {
-    addCliente
+    addCliente,
+    getClientes
 };
