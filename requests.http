@@ -1,5 +1,5 @@
 ###
-GET http://localhost:4000/api/producto HTTP/1.1
+GET http://localhost:4000/api/cliente HTTP/1.1
 
 ###
 GET http://localhost:4000/api/venta/Historial HTTP/1.1
