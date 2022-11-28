@@ -52,7 +52,7 @@ const getHistorial30Dias = async (req, res) => {
         if (resultAgrupados.length > 0) {
             resultAgrupados.forEach(element => element.Ventas = [])
 
-            let qry2 = 'SELECT sum(pv.Cantidad) CantidadItems, v.PrecioTotalVenta,v.MedioPago,c.Nombre Cliente, DATE_FORMAT(DATE_SUB(v.fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") as Fecha, v.observacion as Observacion '
+            let qry2 = 'SELECT sum(pv.Cantidad) CantidadItems, v.PrecioTotalVenta,v.MedioPago,c.Nombre Cliente, DATE_FORMAT(DATE_SUB(v.fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") as Fecha, v.observacion as Observacion,CONCAT(TRIM(c.Calle), ", ", TRIM(c.Comuna)) Direccion '
             qry2 += 'from venta v left join cliente c '
             qry2 += 'on v.Cliente_id=c._id '
             qry2 += 'left join productoventa pv '
