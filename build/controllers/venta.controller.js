@@ -133,14 +133,14 @@ var getHistorial30Dias = /*#__PURE__*/function () {
             resultAgrupados.forEach(function (element) {
               return element.Ventas = [];
             });
-            qry2 = 'SELECT sum(pv.Cantidad) CantidadItems, v.PrecioTotalVenta,v.MedioPago,c.Nombre Cliente, DATE_FORMAT(DATE_SUB(v.fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") as Fecha, v.observacion as Observacion ';
+            qry2 = 'SELECT sum(pv.Cantidad) CantidadItems, v.PrecioTotalVenta,v.MedioPago,c.Nombre Cliente, DATE_FORMAT(DATE_SUB(v.fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") as Fecha, v.observacion as Observacion,CONCAT(TRIM(c.Calle), ", ", TRIM(c.Comuna)) Direccion ';
             qry2 += 'from venta v left join cliente c ';
             qry2 += 'on v.Cliente_id=c._id ';
             qry2 += 'left join productoventa pv ';
             qry2 += 'on pv.Venta_id=v._id ';
             qry2 += 'WHERE v.fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day)  ';
             qry2 += 'GROUP by v._id ';
-            qry2 += 'order by v.fecha desc;';
+            qry2 += 'order by v.fecha desc; ';
             _context2.next = 24;
             return connection.query(qry2);
 
