@@ -59,7 +59,7 @@ const getHistorial30Dias = async (req, res) => {
             qry2 += 'on pv.Venta_id=v._id '
             qry2 += 'WHERE v.fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day)  '
             qry2 += 'GROUP by v._id '
-            qry2 += 'order by v.fecha desc;'
+            qry2 += 'order by v.fecha desc; '
 
             const resultVentas = await connection.query(qry2);
 
