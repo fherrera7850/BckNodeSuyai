@@ -100,40 +100,145 @@ var addVenta = /*#__PURE__*/function () {
   };
 }();
 
-var getHistorial30Dias = /*#__PURE__*/function () {
+var getVenta = /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(req, res) {
-    var connection, qry, resultAgrupados, qry2, resultVentas;
+    var _id, connection, qry, resultVenta;
+
     return _regeneratorRuntime().wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
             _context2.prev = 0;
-            _context2.next = 3;
+            _id = req.params._id;
+            console.log("🚀 ~ file: venta.controller.js:92 ~ getVenta ~ req.body", req.body);
+            _context2.next = 5;
+            return (0, _database.getConnection)();
+
+          case 5:
+            connection = _context2.sent;
+            qry = 'SELECT pv._id , v._id _idv, v.PrecioTotalVenta, v.MedioPago, c._id Cliente_id, p.Nombre, pv.Cantidad, pv.PrecioVentaProducto Precio, p.Costo, DATE_FORMAT(DATE_SUB(v.Fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") Fecha ';
+            qry += 'from venta v left join cliente c on v.Cliente_id=c._id ';
+            qry += 'left join productoventa pv on pv.Venta_id=v._id ';
+            qry += 'inner join producto p on p._id=pv.Producto_id ';
+            qry += "WHERE v._id = ".concat(_id, ";");
+            _context2.next = 13;
+            return connection.query(qry);
+
+          case 13:
+            resultVenta = _context2.sent;
+            res.json(resultVenta);
+            _context2.next = 22;
+            break;
+
+          case 17:
+            _context2.prev = 17;
+            _context2.t0 = _context2["catch"](0);
+            console.error(_context2.t0);
+            res.status(500);
+            res.send(_context2.t0.toString());
+
+          case 22:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2, null, [[0, 17]]);
+  }));
+
+  return function getVenta(_x3, _x4) {
+    return _ref2.apply(this, arguments);
+  };
+}();
+
+var deleteVenta = /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(req, res) {
+    var _id, connection;
+
+    return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            _id = req.params._id;
+            _context3.next = 3;
             return (0, _database.getConnection)();
 
           case 3:
-            connection = _context2.sent;
+            connection = _context3.sent;
+            _context3.prev = 4;
+            _context3.next = 7;
+            return connection.query('START TRANSACTION;');
+
+          case 7:
+            _context3.next = 9;
+            return connection.query("DELETE FROM venta WHERE _id=".concat(_id, ";"));
+
+          case 9:
+            _context3.next = 11;
+            return connection.query("COMMIT;");
+
+          case 11:
+            console.log("commit");
+            res.sendStatus(200);
+            _context3.next = 21;
+            break;
+
+          case 15:
+            _context3.prev = 15;
+            _context3.t0 = _context3["catch"](4);
+            _context3.next = 19;
+            return connection.query("ROLLBACK;");
+
+          case 19:
+            console.log("🚀rollback", _context3.t0);
+            res.sendStatus(500);
+
+          case 21:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3, null, [[4, 15]]);
+  }));
+
+  return function deleteVenta(_x5, _x6) {
+    return _ref3.apply(this, arguments);
+  };
+}();
+
+var getHistorial30Dias = /*#__PURE__*/function () {
+  var _ref4 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(req, res) {
+    var connection, qry, resultAgrupados, qry2, resultVentas;
+    return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+      while (1) {
+        switch (_context4.prev = _context4.next) {
+          case 0:
+            _context4.prev = 0;
+            _context4.next = 3;
+            return (0, _database.getConnection)();
+
+          case 3:
+            connection = _context4.sent;
             qry = 'SELECT count(_id) as NroVentas,sum(Preciototalventa) as SumaVentas, DATE_FORMAT(DATE_SUB(fecha, INTERVAL 3 HOUR), "%Y-%m-%d") as FechaVenta ';
             qry += 'from venta ';
             qry += 'WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day) ';
             qry += 'GROUP by FechaVenta ';
             qry += 'order by FechaVenta desc'; //console.log("🚀 ~ file: venta.controller.js ~ line 48 ~ getHistorial30Dias ~ qry", qry)
 
-            _context2.next = 11;
+            _context4.next = 11;
             return connection.query(qry);
 
           case 11:
-            resultAgrupados = _context2.sent;
+            resultAgrupados = _context4.sent;
 
             if (!(resultAgrupados.length > 0)) {
-              _context2.next = 29;
+              _context4.next = 29;
               break;
             }
 
             resultAgrupados.forEach(function (element) {
               return element.Ventas = [];
             });
-            qry2 = 'SELECT sum(pv.Cantidad) CantidadItems, v.PrecioTotalVenta,v.MedioPago,c.Nombre Cliente, DATE_FORMAT(DATE_SUB(v.fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") as Fecha, v.observacion as Observacion,CONCAT(TRIM(c.Calle), ", ", TRIM(c.Comuna)) Direccion ';
+            qry2 = 'SELECT v._id, sum(pv.Cantidad) CantidadItems, v.PrecioTotalVenta,v.MedioPago,c.Nombre Cliente, DATE_FORMAT(DATE_SUB(v.fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") as Fecha, v.observacion as Observacion,CONCAT(TRIM(c.Calle), ", ", TRIM(c.Comuna)) Direccion ';
             qry2 += 'from venta v left join cliente c ';
             qry2 += 'on v.Cliente_id=c._id ';
             qry2 += 'left join productoventa pv ';
@@ -141,11 +246,11 @@ var getHistorial30Dias = /*#__PURE__*/function () {
             qry2 += 'WHERE v.fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day)  ';
             qry2 += 'GROUP by v._id ';
             qry2 += 'order by v.fecha desc; ';
-            _context2.next = 24;
+            _context4.next = 24;
             return connection.query(qry2);
 
           case 24:
-            resultVentas = _context2.sent;
+            resultVentas = _context4.sent;
             //console.log(resultAgrupados[0], resultVentas[0])
             resultAgrupados.forEach(function (parent) {
               resultVentas.forEach(function (child) {
@@ -155,7 +260,7 @@ var getHistorial30Dias = /*#__PURE__*/function () {
               });
             });
             res.json(resultAgrupados);
-            _context2.next = 30;
+            _context4.next = 30;
             break;
 
           case 29:
@@ -164,42 +269,42 @@ var getHistorial30Dias = /*#__PURE__*/function () {
             });
 
           case 30:
-            _context2.next = 37;
+            _context4.next = 37;
             break;
 
           case 32:
-            _context2.prev = 32;
-            _context2.t0 = _context2["catch"](0);
-            console.error(_context2.t0);
+            _context4.prev = 32;
+            _context4.t0 = _context4["catch"](0);
+            console.error(_context4.t0);
             res.status(500);
-            res.send(_context2.t0.toString());
+            res.send(_context4.t0.toString());
 
           case 37:
           case "end":
-            return _context2.stop();
+            return _context4.stop();
         }
       }
-    }, _callee2, null, [[0, 32]]);
+    }, _callee4, null, [[0, 32]]);
   }));
 
-  return function getHistorial30Dias(_x3, _x4) {
-    return _ref2.apply(this, arguments);
+  return function getHistorial30Dias(_x7, _x8) {
+    return _ref4.apply(this, arguments);
   };
 }();
 
 var getEstadisticas = /*#__PURE__*/function () {
-  var _ref3 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(req, res) {
+  var _ref5 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(req, res) {
     var connection, qryTotales, resultTotales, qryMediosDePago, resultMediosDePago, qryMasVendidos, resultMasVendidos;
-    return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+    return _regeneratorRuntime().wrap(function _callee5$(_context5) {
       while (1) {
-        switch (_context3.prev = _context3.next) {
+        switch (_context5.prev = _context5.next) {
           case 0:
-            _context3.prev = 0;
-            _context3.next = 3;
+            _context5.prev = 0;
+            _context5.next = 3;
             return (0, _database.getConnection)();
 
           case 3:
-            connection = _context3.sent;
+            connection = _context5.sent;
             qryTotales = "SELECT ";
             qryTotales += "count(_id) NroVentas, ";
             qryTotales += "COALESCE(sum(PrecioTotalVenta), 0) SumaVentas, ";
@@ -212,11 +317,11 @@ var getEstadisticas = /*#__PURE__*/function () {
             qryTotales += "where ";
             qryTotales += "DATE_SUB(v.Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59') temp2 where  ";
             qryTotales += "DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59'";
-            _context3.next = 18;
+            _context5.next = 18;
             return connection.query(qryTotales);
 
           case 18:
-            resultTotales = _context3.sent;
+            resultTotales = _context5.sent;
             console.log("🚀 ~  resultTotales", resultTotales);
             qryMediosDePago = "select ";
             qryMediosDePago += "CASE ";
@@ -227,11 +332,11 @@ var getEstadisticas = /*#__PURE__*/function () {
             qryMediosDePago += "END mediopago, count(mediopago) cantidad ";
             qryMediosDePago += "from venta ";
             qryMediosDePago += "group by mediopago order by cantidad desc;";
-            _context3.next = 31;
+            _context5.next = 31;
             return connection.query(qryMediosDePago);
 
           case 31:
-            resultMediosDePago = _context3.sent;
+            resultMediosDePago = _context5.sent;
             console.log("🚀 ~  resultMediosDePago", resultMediosDePago);
             resultTotales[0].MediosDePago = resultMediosDePago;
             qryMasVendidos = "select p.nombre, sum(cantidad) cantidad,sum(pv.PrecioVentaProducto*pv.Cantidad) total ";
@@ -239,40 +344,42 @@ var getEstadisticas = /*#__PURE__*/function () {
             qryMasVendidos += "on p._id=pv.Producto_id ";
             qryMasVendidos += "group by pv.producto_id ";
             qryMasVendidos += "order by cantidad desc;";
-            _context3.next = 41;
+            _context5.next = 41;
             return connection.query(qryMasVendidos);
 
           case 41:
-            resultMasVendidos = _context3.sent;
+            resultMasVendidos = _context5.sent;
             console.log("🚀 ~ resultMasVendidos", resultMasVendidos);
             resultTotales[0].MasVendidos = resultMasVendidos; //const result = await connection.query(qryTotales);
 
             res.json(resultTotales);
-            _context3.next = 51;
+            _context5.next = 51;
             break;
 
           case 47:
-            _context3.prev = 47;
-            _context3.t0 = _context3["catch"](0);
+            _context5.prev = 47;
+            _context5.t0 = _context5["catch"](0);
             res.status(500);
-            res.send(_context3.t0.message);
+            res.send(_context5.t0.message);
 
           case 51:
           case "end":
-            return _context3.stop();
+            return _context5.stop();
         }
       }
-    }, _callee3, null, [[0, 47]]);
+    }, _callee5, null, [[0, 47]]);
   }));
 
-  return function getEstadisticas(_x5, _x6) {
-    return _ref3.apply(this, arguments);
+  return function getEstadisticas(_x9, _x10) {
+    return _ref5.apply(this, arguments);
   };
 }();
 
 var methods = {
   addVenta: addVenta,
   getHistorial30Dias: getHistorial30Dias,
-  getEstadisticas: getEstadisticas
+  getEstadisticas: getEstadisticas,
+  getVenta: getVenta,
+  deleteVenta: deleteVenta
 };
 exports.methods = methods;

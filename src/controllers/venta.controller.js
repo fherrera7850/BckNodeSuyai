@@ -36,6 +36,46 @@ const addVenta = async (req, res) => {
     }
 }
 
+const getVenta = async (req, res) => {
+    try {
+        const { _id } = req.params
+        console.log("🚀 ~ file: venta.controller.js:92 ~ getVenta ~ req.body", req.body)
+        const connection = await getConnection();
+
+        let qry = 'SELECT pv._id , v._id _idv, v.PrecioTotalVenta, v.MedioPago, c._id Cliente_id, p.Nombre, pv.Cantidad, pv.PrecioVentaProducto Precio, p.Costo, DATE_FORMAT(DATE_SUB(v.Fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") Fecha '
+        qry += 'from venta v left join cliente c on v.Cliente_id=c._id '
+        qry += 'left join productoventa pv on pv.Venta_id=v._id '
+        qry += 'inner join producto p on p._id=pv.Producto_id '
+        qry += `WHERE v._id = ${_id};`
+
+        const resultVenta = await connection.query(qry);
+
+        res.json(resultVenta);
+
+    } catch (error) {
+        console.error(error)
+        res.status(500);
+        res.send(error.toString());
+    }
+};
+
+const deleteVenta = async (req, res) => {
+    const { _id } = req.params
+    const connection = await getConnection();
+
+    try {
+        await connection.query('START TRANSACTION;')
+        await connection.query(`DELETE FROM venta WHERE _id=${_id};`)
+        await connection.query("COMMIT;")
+        console.log("commit")
+        res.sendStatus(200)
+    } catch (error) {
+        await connection.query("ROLLBACK;")
+        console.log("🚀rollback", error)
+        res.sendStatus(500)
+    }
+};
+
 const getHistorial30Dias = async (req, res) => {
     try {
         const connection = await getConnection();
@@ -52,7 +92,7 @@ const getHistorial30Dias = async (req, res) => {
         if (resultAgrupados.length > 0) {
             resultAgrupados.forEach(element => element.Ventas = [])
 
-            let qry2 = 'SELECT sum(pv.Cantidad) CantidadItems, v.PrecioTotalVenta,v.MedioPago,c.Nombre Cliente, DATE_FORMAT(DATE_SUB(v.fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") as Fecha, v.observacion as Observacion,CONCAT(TRIM(c.Calle), ", ", TRIM(c.Comuna)) Direccion '
+            let qry2 = 'SELECT v._id, sum(pv.Cantidad) CantidadItems, v.PrecioTotalVenta,v.MedioPago,c.Nombre Cliente, DATE_FORMAT(DATE_SUB(v.fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") as Fecha, v.observacion as Observacion,CONCAT(TRIM(c.Calle), ", ", TRIM(c.Comuna)) Direccion '
             qry2 += 'from venta v left join cliente c '
             qry2 += 'on v.Cliente_id=c._id '
             qry2 += 'left join productoventa pv '
@@ -146,5 +186,7 @@ const getEstadisticas = async (req, res) => {
 export const methods = {
     addVenta,
     getHistorial30Dias,
-    getEstadisticas
+    getEstadisticas,
+    getVenta,
+    deleteVenta
 };
