@@ -309,7 +309,7 @@ var getEstadisticas = /*#__PURE__*/function () {
             qryTotales += "count(_id) NroVentas, ";
             qryTotales += "COALESCE(sum(PrecioTotalVenta), 0) SumaVentas, ";
             qryTotales += "avg(preciototalventa) PromedioVentas, ";
-            qryTotales += "GananciaVentas ";
+            qryTotales += "GananciaVentas-sum(Dcto) GananciaVentas ";
             qryTotales += "FROM venta, (select (sum(pv.PrecioVentaProducto*pv.cantidad) - sum(p.Costo*pv.cantidad)) GananciaVentas ";
             qryTotales += "from productoventa pv inner join producto p ";
             qryTotales += "on pv.Producto_id=p._id inner join venta v ";
@@ -331,43 +331,47 @@ var getEstadisticas = /*#__PURE__*/function () {
             qryMediosDePago += "ELSE '-' ";
             qryMediosDePago += "END mediopago, count(mediopago) cantidad ";
             qryMediosDePago += "from venta ";
+            qryMediosDePago += "where ";
+            qryMediosDePago += "DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' ";
             qryMediosDePago += "group by mediopago order by cantidad desc;";
-            _context5.next = 31;
+            _context5.next = 33;
             return connection.query(qryMediosDePago);
 
-          case 31:
+          case 33:
             resultMediosDePago = _context5.sent;
             console.log("🚀 ~  resultMediosDePago", resultMediosDePago);
             resultTotales[0].MediosDePago = resultMediosDePago;
             qryMasVendidos = "select p.nombre, sum(cantidad) cantidad,sum(pv.PrecioVentaProducto*pv.Cantidad) total ";
             qryMasVendidos += "from productoventa pv inner join producto p ";
-            qryMasVendidos += "on p._id=pv.Producto_id ";
+            qryMasVendidos += "on p._id=pv.Producto_id  inner join venta v ";
+            qryMasVendidos += "on v._id=pv.Venta_id ";
+            qryMasVendidos += "where DATE_SUB(v.Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' ";
             qryMasVendidos += "group by pv.producto_id ";
             qryMasVendidos += "order by cantidad desc;";
-            _context5.next = 41;
+            _context5.next = 45;
             return connection.query(qryMasVendidos);
 
-          case 41:
+          case 45:
             resultMasVendidos = _context5.sent;
             console.log("🚀 ~ resultMasVendidos", resultMasVendidos);
             resultTotales[0].MasVendidos = resultMasVendidos; //const result = await connection.query(qryTotales);
 
             res.json(resultTotales);
-            _context5.next = 51;
+            _context5.next = 55;
             break;
 
-          case 47:
-            _context5.prev = 47;
+          case 51:
+            _context5.prev = 51;
             _context5.t0 = _context5["catch"](0);
             res.status(500);
             res.send(_context5.t0.message);
 
-          case 51:
+          case 55:
           case "end":
             return _context5.stop();
         }
       }
-    }, _callee5, null, [[0, 47]]);
+    }, _callee5, null, [[0, 51]]);
   }));
 
   return function getEstadisticas(_x9, _x10) {

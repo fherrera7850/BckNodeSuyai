@@ -135,7 +135,7 @@ const getEstadisticas = async (req, res) => {
         qryTotales += "count(_id) NroVentas, "
         qryTotales += "COALESCE(sum(PrecioTotalVenta), 0) SumaVentas, "
         qryTotales += "avg(preciototalventa) PromedioVentas, "
-        qryTotales += "GananciaVentas "
+        qryTotales += "GananciaVentas-sum(Dcto) GananciaVentas "
         qryTotales += "FROM venta, (select (sum(pv.PrecioVentaProducto*pv.cantidad) - sum(p.Costo*pv.cantidad)) GananciaVentas "
         qryTotales += "from productoventa pv inner join producto p "
         qryTotales += "on pv.Producto_id=p._id inner join venta v "
@@ -156,6 +156,8 @@ const getEstadisticas = async (req, res) => {
         qryMediosDePago += "ELSE '-' "
         qryMediosDePago += "END mediopago, count(mediopago) cantidad "
         qryMediosDePago += "from venta "
+        qryMediosDePago += "where "
+        qryMediosDePago += "DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' ";
         qryMediosDePago += "group by mediopago order by cantidad desc;"
 
         const resultMediosDePago = await connection.query(qryMediosDePago);
@@ -165,7 +167,9 @@ const getEstadisticas = async (req, res) => {
 
         let qryMasVendidos = "select p.nombre, sum(cantidad) cantidad,sum(pv.PrecioVentaProducto*pv.Cantidad) total "
         qryMasVendidos += "from productoventa pv inner join producto p "
-        qryMasVendidos += "on p._id=pv.Producto_id "
+        qryMasVendidos += "on p._id=pv.Producto_id  inner join venta v "
+        qryMasVendidos += "on v._id=pv.Venta_id "
+        qryMasVendidos += "where DATE_SUB(v.Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' ";
         qryMasVendidos += "group by pv.producto_id "
         qryMasVendidos += "order by cantidad desc;"
 
