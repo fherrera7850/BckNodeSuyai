@@ -17,13 +17,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 var addVenta = /*#__PURE__*/function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(req, res) {
-    var _req$body, Venta, ProductosVenta, fx, connection, resVenta, idVenta, key, PV;
+    var _req$body, Venta, ProductosVenta, Pedido, fx, connection, resVenta, idVenta, key, PV;
 
     return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            _req$body = req.body, Venta = _req$body.Venta, ProductosVenta = _req$body.ProductosVenta;
+            _req$body = req.body, Venta = _req$body.Venta, ProductosVenta = _req$body.ProductosVenta, Pedido = _req$body.Pedido;
             fx = Venta.Fecha.toString();
             fx = fx.replace(/T/g, " ");
             fx = fx.replace(/Z/g, "");
@@ -68,31 +68,42 @@ var addVenta = /*#__PURE__*/function () {
             break;
 
           case 24:
-            _context.next = 26;
+            if (!Pedido) {
+              _context.next = 29;
+              break;
+            }
+
+            Pedido.Venta_id = idVenta;
+            console.log("🚀 ~ file: venta.controller.js:31 ~ addVenta ~ Pedido", Pedido);
+            _context.next = 29;
+            return connection.query("INSERT INTO pedido SET ?", Pedido);
+
+          case 29:
+            _context.next = 31;
             return connection.query("commit");
 
-          case 26:
+          case 31:
             console.log("commit");
             res.sendStatus(200);
-            _context.next = 36;
+            _context.next = 41;
             break;
 
-          case 30:
-            _context.prev = 30;
+          case 35:
+            _context.prev = 35;
             _context.t2 = _context["catch"](9);
-            _context.next = 34;
+            _context.next = 39;
             return connection.query("rollback");
 
-          case 34:
+          case 39:
             console.log("🚀rollback", _context.t2);
             res.sendStatus(500);
 
-          case 36:
+          case 41:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[9, 30]]);
+    }, _callee, null, [[9, 35]]);
   }));
 
   return function addVenta(_x, _x2) {
@@ -221,17 +232,18 @@ var getHistorial30Dias = /*#__PURE__*/function () {
             qry = 'SELECT count(_id) as NroVentas,sum(Preciototalventa) as SumaVentas, DATE_FORMAT(DATE_SUB(fecha, INTERVAL 3 HOUR), "%Y-%m-%d") as FechaVenta ';
             qry += 'from venta ';
             qry += 'WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day) ';
+            qry += 'and _id not in (select Venta_id from pedido) ';
             qry += 'GROUP by FechaVenta ';
             qry += 'order by FechaVenta desc'; //console.log("🚀 ~ file: venta.controller.js ~ line 48 ~ getHistorial30Dias ~ qry", qry)
 
-            _context4.next = 11;
+            _context4.next = 12;
             return connection.query(qry);
 
-          case 11:
+          case 12:
             resultAgrupados = _context4.sent;
 
             if (!(resultAgrupados.length > 0)) {
-              _context4.next = 29;
+              _context4.next = 31;
               break;
             }
 
@@ -244,12 +256,13 @@ var getHistorial30Dias = /*#__PURE__*/function () {
             qry2 += 'left join productoventa pv ';
             qry2 += 'on pv.Venta_id=v._id ';
             qry2 += 'WHERE v.fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day)  ';
+            qry2 += 'and v._id not in (select Venta_id from pedido) ';
             qry2 += 'GROUP by v._id ';
             qry2 += 'order by v.fecha desc; ';
-            _context4.next = 24;
+            _context4.next = 26;
             return connection.query(qry2);
 
-          case 24:
+          case 26:
             resultVentas = _context4.sent;
             //console.log(resultAgrupados[0], resultVentas[0])
             resultAgrupados.forEach(function (parent) {
@@ -260,31 +273,31 @@ var getHistorial30Dias = /*#__PURE__*/function () {
               });
             });
             res.json(resultAgrupados);
-            _context4.next = 30;
+            _context4.next = 32;
             break;
 
-          case 29:
+          case 31:
             res.json({
               ErrorMessage: "No hay ventas para mostrar"
             });
 
-          case 30:
-            _context4.next = 37;
+          case 32:
+            _context4.next = 39;
             break;
 
-          case 32:
-            _context4.prev = 32;
+          case 34:
+            _context4.prev = 34;
             _context4.t0 = _context4["catch"](0);
             console.error(_context4.t0);
             res.status(500);
             res.send(_context4.t0.toString());
 
-          case 37:
+          case 39:
           case "end":
             return _context4.stop();
         }
       }
-    }, _callee4, null, [[0, 32]]);
+    }, _callee4, null, [[0, 34]]);
   }));
 
   return function getHistorial30Dias(_x7, _x8) {
@@ -315,12 +328,14 @@ var getEstadisticas = /*#__PURE__*/function () {
             qryTotales += "on pv.Producto_id=p._id inner join venta v ";
             qryTotales += "on v._id=pv.Venta_id ";
             qryTotales += "where ";
+            qryTotales += 'v._id not in (select Venta_id from pedido) and ';
             qryTotales += "DATE_SUB(v.Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59') temp2 where  ";
-            qryTotales += "DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59'";
-            _context5.next = 18;
+            qryTotales += "DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' ";
+            qryTotales += "and _id not in (select Venta_id from pedido)";
+            _context5.next = 20;
             return connection.query(qryTotales);
 
-          case 18:
+          case 20:
             resultTotales = _context5.sent;
             console.log("🚀 ~  resultTotales", resultTotales);
             qryMediosDePago = "select ";
@@ -332,46 +347,53 @@ var getEstadisticas = /*#__PURE__*/function () {
             qryMediosDePago += "END mediopago, count(mediopago) cantidad ";
             qryMediosDePago += "from venta ";
             qryMediosDePago += "where ";
+            qryMediosDePago += '_id not in (select Venta_id from pedido) and ';
             qryMediosDePago += "DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' ";
             qryMediosDePago += "group by mediopago order by cantidad desc;";
-            _context5.next = 33;
+            _context5.next = 36;
             return connection.query(qryMediosDePago);
 
-          case 33:
+          case 36:
             resultMediosDePago = _context5.sent;
             console.log("🚀 ~  resultMediosDePago", resultMediosDePago);
-            resultTotales[0].MediosDePago = resultMediosDePago;
+
+            if (resultTotales.length > 0) {
+              resultTotales[0].MediosDePago = resultMediosDePago;
+            }
+
             qryMasVendidos = "select p.nombre, sum(cantidad) cantidad,sum(pv.PrecioVentaProducto*pv.Cantidad) total ";
             qryMasVendidos += "from productoventa pv inner join producto p ";
             qryMasVendidos += "on p._id=pv.Producto_id  inner join venta v ";
             qryMasVendidos += "on v._id=pv.Venta_id ";
             qryMasVendidos += "where DATE_SUB(v.Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' ";
+            qryMasVendidos += 'and v._id not in (select Venta_id from pedido) ';
             qryMasVendidos += "group by pv.producto_id ";
             qryMasVendidos += "order by cantidad desc;";
-            _context5.next = 45;
+            console.log("🚀 ~ file: venta.controller.js:189 ~ getEstadisticas ~ qryMasVendidos", qryMasVendidos);
+            _context5.next = 50;
             return connection.query(qryMasVendidos);
 
-          case 45:
+          case 50:
             resultMasVendidos = _context5.sent;
             console.log("🚀 ~ resultMasVendidos", resultMasVendidos);
             resultTotales[0].MasVendidos = resultMasVendidos; //const result = await connection.query(qryTotales);
 
             res.json(resultTotales);
-            _context5.next = 55;
+            _context5.next = 60;
             break;
 
-          case 51:
-            _context5.prev = 51;
+          case 56:
+            _context5.prev = 56;
             _context5.t0 = _context5["catch"](0);
             res.status(500);
             res.send(_context5.t0.message);
 
-          case 55:
+          case 60:
           case "end":
             return _context5.stop();
         }
       }
-    }, _callee5, null, [[0, 51]]);
+    }, _callee5, null, [[0, 56]]);
   }));
 
   return function getEstadisticas(_x9, _x10) {

@@ -112,8 +112,53 @@ var getClientes = /*#__PURE__*/function () {
   };
 }();
 
+var getCliente = /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(req, res) {
+    var _id, connection, qry, result;
+
+    return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            _context3.prev = 0;
+            _id = req.params._id;
+            _context3.next = 4;
+            return (0, _database.getConnection)();
+
+          case 4:
+            connection = _context3.sent;
+            qry = "select _id,nombre,telefono,direccion,calle,comuna,email,observacion from cliente where _id=".concat(_id);
+            _context3.next = 8;
+            return connection.query(qry);
+
+          case 8:
+            result = _context3.sent;
+            res.json(result);
+            _context3.next = 16;
+            break;
+
+          case 12:
+            _context3.prev = 12;
+            _context3.t0 = _context3["catch"](0);
+            res.status(500);
+            res.send(_context3.t0.message);
+
+          case 16:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3, null, [[0, 12]]);
+  }));
+
+  return function getCliente(_x5, _x6) {
+    return _ref3.apply(this, arguments);
+  };
+}();
+
 var methods = {
   addCliente: addCliente,
-  getClientes: getClientes
+  getClientes: getClientes,
+  getCliente: getCliente
 };
 exports.methods = methods;

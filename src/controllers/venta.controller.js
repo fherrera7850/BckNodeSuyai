@@ -2,7 +2,7 @@ import { getConnection } from "./../database/database";
 
 const addVenta = async (req, res) => {
 
-    const { Venta, ProductosVenta } = req.body
+    const { Venta, ProductosVenta, Pedido } = req.body
     let fx = Venta.Fecha.toString()
     fx = fx.replace(/T/g, " ")
     fx = fx.replace(/Z/g, "")
@@ -24,6 +24,12 @@ const addVenta = async (req, res) => {
                 PrecioVentaProducto: ProductosVenta[key].Precio
             }
             await connection.query("INSERT INTO productoventa SET ?", PV)
+        }
+
+        if (Pedido) {
+            Pedido.Venta_id = idVenta
+            console.log("🚀 ~ file: venta.controller.js:31 ~ addVenta ~ Pedido", Pedido)
+            await connection.query("INSERT INTO pedido SET ?", Pedido)
         }
 
         await connection.query("commit")
@@ -83,6 +89,7 @@ const getHistorial30Dias = async (req, res) => {
         let qry = 'SELECT count(_id) as NroVentas,sum(Preciototalventa) as SumaVentas, DATE_FORMAT(DATE_SUB(fecha, INTERVAL 3 HOUR), "%Y-%m-%d") as FechaVenta '
         qry += 'from venta '
         qry += 'WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day) '
+        qry += 'and _id not in (select Venta_id from pedido) '
         qry += 'GROUP by FechaVenta '
         qry += 'order by FechaVenta desc'
         //console.log("🚀 ~ file: venta.controller.js ~ line 48 ~ getHistorial30Dias ~ qry", qry)
@@ -98,6 +105,7 @@ const getHistorial30Dias = async (req, res) => {
             qry2 += 'left join productoventa pv '
             qry2 += 'on pv.Venta_id=v._id '
             qry2 += 'WHERE v.fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day)  '
+            qry2 += 'and v._id not in (select Venta_id from pedido) '
             qry2 += 'GROUP by v._id '
             qry2 += 'order by v.fecha desc; '
 
@@ -141,8 +149,10 @@ const getEstadisticas = async (req, res) => {
         qryTotales += "on pv.Producto_id=p._id inner join venta v "
         qryTotales += "on v._id=pv.Venta_id "
         qryTotales += "where "
+        qryTotales += 'v._id not in (select Venta_id from pedido) and '
         qryTotales += "DATE_SUB(v.Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59') temp2 where  "
-        qryTotales += "DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59'"
+        qryTotales += "DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' "
+        qryTotales += "and _id not in (select Venta_id from pedido)"
 
         const resultTotales = await connection.query(qryTotales);
         console.log("🚀 ~  resultTotales", resultTotales)
@@ -157,21 +167,26 @@ const getEstadisticas = async (req, res) => {
         qryMediosDePago += "END mediopago, count(mediopago) cantidad "
         qryMediosDePago += "from venta "
         qryMediosDePago += "where "
+        qryMediosDePago += '_id not in (select Venta_id from pedido) and '
         qryMediosDePago += "DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' ";
         qryMediosDePago += "group by mediopago order by cantidad desc;"
 
         const resultMediosDePago = await connection.query(qryMediosDePago);
         console.log("🚀 ~  resultMediosDePago", resultMediosDePago)
 
-        resultTotales[0].MediosDePago = resultMediosDePago
+        if (resultTotales.length > 0) {
+            resultTotales[0].MediosDePago = resultMediosDePago
+        }
 
         let qryMasVendidos = "select p.nombre, sum(cantidad) cantidad,sum(pv.PrecioVentaProducto*pv.Cantidad) total "
         qryMasVendidos += "from productoventa pv inner join producto p "
         qryMasVendidos += "on p._id=pv.Producto_id  inner join venta v "
         qryMasVendidos += "on v._id=pv.Venta_id "
         qryMasVendidos += "where DATE_SUB(v.Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' ";
+        qryMasVendidos += 'and v._id not in (select Venta_id from pedido) '
         qryMasVendidos += "group by pv.producto_id "
         qryMasVendidos += "order by cantidad desc;"
+        console.log("🚀 ~ file: venta.controller.js:189 ~ getEstadisticas ~ qryMasVendidos", qryMasVendidos)
 
         const resultMasVendidos = await connection.query(qryMasVendidos);
         console.log("🚀 ~ resultMasVendidos", resultMasVendidos)

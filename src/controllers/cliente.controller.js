@@ -4,7 +4,7 @@ const addCliente = async (req, res) => {
 
     const { Cliente } = req.body
     console.log("🚀 ~ file: cliente.controller.js ~ line 6 ~ addCliente ~ Cliente", Cliente)
-    
+
 
     const connection = await getConnection();
 
@@ -33,7 +33,21 @@ const getClientes = async (req, res) => {
     }
 };
 
+const getCliente = async (req, res) => {
+    try {
+        const { _id } = req.params
+        const connection = await getConnection();
+        let qry = `select _id,nombre,telefono,direccion,calle,comuna,email,observacion from cliente where _id=${_id}`
+        const result = await connection.query(qry);
+        res.json(result);
+    } catch (error) {
+        res.status(500);
+        res.send(error.message);
+    }
+};
+
 export const methods = {
     addCliente,
-    getClientes
+    getClientes,
+    getCliente
 };
