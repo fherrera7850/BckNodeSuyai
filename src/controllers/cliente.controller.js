@@ -10,10 +10,10 @@ const addCliente = async (req, res) => {
 
     try {
         await connection.query('START TRANSACTION')
-        await connection.query("INSERT INTO cliente SET ?", req.body)
+        const response = await connection.query("INSERT INTO cliente SET ?", req.body)
         await connection.query("commit")
         console.log("commit")
-        res.sendStatus(200)
+        res.sendStatus(200);
     } catch (error) {
         await connection.query("rollback")
         console.log("🚀rollback", error)

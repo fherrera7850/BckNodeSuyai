@@ -7,6 +7,8 @@ const addVenta = async (req, res) => {
     fx = fx.replace(/T/g, " ")
     fx = fx.replace(/Z/g, "")
     Venta.Fecha = fx
+    if (Pedido)
+        Pedido.FechaCreacion = fx
     console.log("🚀 ~ file: venta.controller.js ~ line 8 ~ addVenta ~ fx", fx)
 
 
@@ -16,29 +18,35 @@ const addVenta = async (req, res) => {
         await connection.query('START TRANSACTION')
         const resVenta = await connection.query("INSERT INTO venta SET ?", Venta)
         const idVenta = resVenta.insertId
+        console.log("🚀 ~ file: venta.controller.js:19 ~ addVenta ~ idVenta", idVenta)
         for (const key in ProductosVenta) {
             let PV = {
                 Venta_id: idVenta,
                 Producto_id: ProductosVenta[key]._id,
                 Cantidad: ProductosVenta[key].Cantidad,
-                PrecioVentaProducto: ProductosVenta[key].Precio
+                PrecioVentaProducto: ProductosVenta[key].PrecioVenta > 0 ? ProductosVenta[key].PrecioVenta : ProductosVenta[key].Precio
             }
+            console.log("🚀 ~ file: venta.controller.js:27 ~ addVenta ~ PV", PV)
             await connection.query("INSERT INTO productoventa SET ?", PV)
         }
 
+        console.log("🚀 ~ file: venta.controller.js:34 ~ addVenta ~ Pedido", Pedido)
+
         if (Pedido) {
             Pedido.Venta_id = idVenta
-            console.log("🚀 ~ file: venta.controller.js:31 ~ addVenta ~ Pedido", Pedido)
+            console.log("🚀 --------HACE INSERT DE PEDIDO-------")
             await connection.query("INSERT INTO pedido SET ?", Pedido)
         }
 
-        await connection.query("commit")
+        await connection.query("COMMIT;")
         console.log("commit")
         res.sendStatus(200)
     } catch (error) {
-        await connection.query("rollback")
+        await connection.query("ROLLBACK;")
         console.log("🚀rollback", error)
         res.sendStatus(500)
+    } finally {
+        await connection.query("COMMIT;")
     }
 }
 
@@ -48,10 +56,11 @@ const getVenta = async (req, res) => {
         console.log("🚀 ~ file: venta.controller.js:92 ~ getVenta ~ req.body", req.body)
         const connection = await getConnection();
 
-        let qry = 'SELECT pv._id , v._id _idv, v.PrecioTotalVenta, v.MedioPago, c._id Cliente_id, p.Nombre, pv.Cantidad, pv.PrecioVentaProducto Precio, p.Costo, DATE_FORMAT(DATE_SUB(v.Fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") Fecha '
+        let qry = 'SELECT pv._id , v._id _idv, ped._id _idp, p._id id_producto, v.PrecioTotalVenta, v.Dcto, v.MedioPago, c._id Cliente_id, p.Nombre, pv.Cantidad, p.Precio Precio, pv.PrecioVentaProducto PrecioVenta, p.Costo, p.Descripcion, p.CategoriaProducto_id, p.Imagen, (select count(Producto_id) from productoventa) as Ventas, DATE_FORMAT(DATE_SUB(v.Fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") Fecha '
         qry += 'from venta v left join cliente c on v.Cliente_id=c._id '
         qry += 'left join productoventa pv on pv.Venta_id=v._id '
         qry += 'inner join producto p on p._id=pv.Producto_id '
+        qry += 'left join pedido ped on v._id=ped.Venta_id '
         qry += `WHERE v._id = ${_id};`
 
         const resultVenta = await connection.query(qry);
@@ -89,10 +98,10 @@ const getHistorial30Dias = async (req, res) => {
         let qry = 'SELECT count(_id) as NroVentas,sum(Preciototalventa) as SumaVentas, DATE_FORMAT(DATE_SUB(fecha, INTERVAL 3 HOUR), "%Y-%m-%d") as FechaVenta '
         qry += 'from venta '
         qry += 'WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day) '
-        qry += 'and _id not in (select Venta_id from pedido) '
+        qry += 'and _id not in (select Venta_id from pedido where Estado = "I") '
         qry += 'GROUP by FechaVenta '
         qry += 'order by FechaVenta desc'
-        //console.log("🚀 ~ file: venta.controller.js ~ line 48 ~ getHistorial30Dias ~ qry", qry)
+        console.log("🚀 ~ file: venta.controller.js ~ line 48 ~ getHistorial30Dias ~ qry", qry)
 
         const resultAgrupados = await connection.query(qry);
 
@@ -105,7 +114,7 @@ const getHistorial30Dias = async (req, res) => {
             qry2 += 'left join productoventa pv '
             qry2 += 'on pv.Venta_id=v._id '
             qry2 += 'WHERE v.fecha >= DATE_SUB(CURDATE(), INTERVAL 30 day)  '
-            qry2 += 'and v._id not in (select Venta_id from pedido) '
+            qry2 += 'and v._id not in (select Venta_id from pedido where Estado = "I") '
             qry2 += 'GROUP by v._id '
             qry2 += 'order by v.fecha desc; '
 
@@ -133,6 +142,7 @@ const getHistorial30Dias = async (req, res) => {
         res.send(error.toString());
     }
 };
+
 
 const getEstadisticas = async (req, res) => {
     try {
@@ -199,6 +209,7 @@ const getEstadisticas = async (req, res) => {
     } catch (error) {
         res.status(500);
         res.send(error.message);
+        console.log("🚀 ~ file: venta.controller.js:207 ~ getEstadisticas ~ error", error)
     }
 };
 
