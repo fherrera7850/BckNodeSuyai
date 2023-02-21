@@ -19,6 +19,10 @@ var _productoVenta = _interopRequireDefault(require("./routes/productoVenta.rout
 
 var _cliente = _interopRequireDefault(require("./routes/cliente.routes"));
 
+var _pedidoVenta = _interopRequireDefault(require("./routes/pedidoVenta.routes"));
+
+var _pedido = _interopRequireDefault(require("./routes/pedido.routes"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 // Routes
@@ -42,5 +46,7 @@ app.use("/api/producto", _producto["default"]);
 app.use("/api/venta", _venta["default"]);
 app.use("/api/productoventa", _productoVenta["default"]);
 app.use("/api/cliente", _cliente["default"]);
+app.use("/api/pedidoventa", _pedidoVenta["default"]);
+app.use("/api/pedido", _pedido["default"]);
 var _default = app;
 exports["default"] = _default;
