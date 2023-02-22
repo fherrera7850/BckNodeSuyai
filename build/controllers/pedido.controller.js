@@ -43,7 +43,7 @@ var getPedidos = /*#__PURE__*/function () {
             resultFechas.forEach(function (element) {
               return element.Pedidos = [];
             });
-            qryAgrupados = 'SELECT ped._id Pedido_id, c._id Cliente_id, v._id Venta_id, c.Nombre, ped.Direccion, ped.Telefono, ped.FechaEntrega, ped.Estado ';
+            qryAgrupados = 'SELECT ped._id Pedido_id, c._id Cliente_id, v._id Venta_id, c.Nombre, ped.Direccion, ped.Telefono, ped.FechaEntrega, ped.Estado, ped.Nota ';
             qryAgrupados += 'FROM pedido ped ';
             qryAgrupados += 'LEFT JOIN venta v on v._id=ped.Venta_id ';
             qryAgrupados += 'LEFT JOIN cliente c on c._id=v.Cliente_id ORDER BY 1;';
@@ -62,7 +62,7 @@ var getPedidos = /*#__PURE__*/function () {
             resultAgrupados.forEach(function (element) {
               return element.Pedido = [];
             });
-            qryDetalleProductos = 'SELECT ped._id as Pedido_id, pv.Cantidad, p.Nombre as Producto ';
+            qryDetalleProductos = 'SELECT ped._id as Pedido_id, pv.Cantidad, p.Nombre as Producto, p._id Producto_id, pv.PrecioVentaProducto PrecioVenta ';
             qryDetalleProductos += 'FROM venta v ';
             qryDetalleProductos += 'RIGHT JOIN pedido ped on ped.Venta_id=v._id ';
             qryDetalleProductos += 'INNER JOIN productoventa pv on v._id=pv.Venta_id ';
@@ -150,7 +150,7 @@ var getPedido = /*#__PURE__*/function () {
             resultAgrupados.forEach(function (element) {
               return element.Productos = [];
             });
-            qryDetalleProductos = 'SELECT ped._id as Pedido_id, pv.Cantidad, p.Nombre, p.Precio, p.Costo ';
+            qryDetalleProductos = 'SELECT ped._id as Pedido_id, pv.Cantidad, p._id Producto_id, p.Nombre, p.Precio, p.Costo ';
             qryDetalleProductos += 'FROM venta v ';
             qryDetalleProductos += 'RIGHT JOIN pedido ped on ped.Venta_id=v._id ';
             qryDetalleProductos += 'INNER JOIN productoventa pv on v._id=pv.Venta_id ';

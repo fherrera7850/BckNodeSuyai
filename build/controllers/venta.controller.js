@@ -257,7 +257,7 @@ var getHistorial30Dias = /*#__PURE__*/function () {
             resultAgrupados = _context4.sent;
 
             if (!(resultAgrupados.length > 0)) {
-              _context4.next = 32;
+              _context4.next = 33;
               break;
             }
 
@@ -287,31 +287,32 @@ var getHistorial30Dias = /*#__PURE__*/function () {
               });
             });
             res.json(resultAgrupados);
-            _context4.next = 33;
+            res.status(200);
+            _context4.next = 34;
             break;
 
-          case 32:
+          case 33:
             res.json({
               ErrorMessage: "No hay ventas para mostrar"
             });
 
-          case 33:
-            _context4.next = 40;
+          case 34:
+            _context4.next = 41;
             break;
 
-          case 35:
-            _context4.prev = 35;
+          case 36:
+            _context4.prev = 36;
             _context4.t0 = _context4["catch"](0);
             console.error(_context4.t0);
             res.status(500);
             res.send(_context4.t0.toString());
 
-          case 40:
+          case 41:
           case "end":
             return _context4.stop();
         }
       }
-    }, _callee4, null, [[0, 35]]);
+    }, _callee4, null, [[0, 36]]);
   }));
 
   return function getHistorial30Dias(_x7, _x8) {

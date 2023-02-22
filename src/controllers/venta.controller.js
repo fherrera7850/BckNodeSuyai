@@ -130,6 +130,7 @@ const getHistorial30Dias = async (req, res) => {
                 });
             });
             res.json(resultAgrupados);
+            res.status(200);
         }
         else {
             res.json({ ErrorMessage: "No hay ventas para mostrar" })
