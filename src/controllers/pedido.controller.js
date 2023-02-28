@@ -110,8 +110,161 @@ const getPedido = async (req, res) => {
 const deletePedido = async (req, res) => {
 };
 
+const CompletarPedido = async (req, res) => {
+
+    const { Venta, ProductosVenta, Pedido } = req.body
+    console.log("🚀 ~ file: pedido.controller.js:116 ~ CompletarPedido ~ Pedido:", Pedido)
+    console.log("🚀 ~ file: pedido.controller.js:116 ~ CompletarPedido ~ Venta:", Venta)
+    /*  let fx = Venta.Fecha.toString()
+     fx = fx.replace(/T/g, " ")
+     fx = fx.replace(/Z/g, "")
+     Venta.Fecha = fx
+     if (Pedido)
+         Pedido.FechaCreacion = fx
+     console.log("🚀 ~ file: venta.controller.js ~ line 8 ~ addVenta ~ fx", fx) */
+
+
+    const connection = await getConnection();
+
+    try {
+
+        const datosVenta = await connection.query(`select * from venta where _id = ${Pedido.Venta_id}`)
+        const datosProductoVenta = await connection.query(`select * from productoventa where Venta_id = ${Pedido.Venta_id}`)
+        const datosPedido = await connection.query(`select * from pedido where Venta_id = ${Pedido.Venta_id}`)
+
+
+        let eliminados = []
+        let nuevos = []
+        let mismos = []
+
+
+
+        //identifica los que setan en ambos
+        for (const keyDatosPV in datosProductoVenta) {
+            for (const key in ProductosVenta) {
+
+                let PV = {
+                    Producto_id: ProductosVenta[key]._id,
+                    Cantidad: ProductosVenta[key].Cantidad,
+                    PrecioVentaProducto: ProductosVenta[key].PrecioVenta > 0 ? ProductosVenta[key].PrecioVenta : ProductosVenta[key].Precio
+                }
+
+                if (PV.Producto_id === datosProductoVenta[keyDatosPV].Producto_id) {
+                    //Se guardan en el array de los que ya están para hacer update
+                    mismos.push(PV)
+                }
+            }
+        }
+
+        //identifica eliminados
+        for (const keyDatosPV in datosProductoVenta) {
+
+            let estaEnMismos = false
+
+            for (const key in mismos) {
+                let PV = {
+                    Producto_id: ProductosVenta[key]._id
+                }
+
+                if (mismos[key].Producto_id === datosProductoVenta[keyDatosPV].Producto_id) {
+                    estaEnMismos = true
+                }
+            }
+
+            if (!estaEnMismos) {
+                eliminados.push(datosProductoVenta[keyDatosPV])
+            }
+        }
+
+        //identifica nuevos
+        for (const keyProductosVenta in ProductosVenta) {
+
+            let PV = {
+                Producto_id: ProductosVenta[keyProductosVenta]._id,
+                Cantidad: ProductosVenta[keyProductosVenta].Cantidad,
+                PrecioVentaProducto: ProductosVenta[keyProductosVenta].PrecioVenta > 0 ? ProductosVenta[keyProductosVenta].PrecioVenta : ProductosVenta[keyProductosVenta].Precio
+            }
+
+            let estaEnMismos = false
+
+            for (const keyMismos in mismos) {
+                if (mismos[keyMismos].Producto_id === PV.Producto_id) {
+                    estaEnMismos = true
+                }
+            }
+
+            if (!estaEnMismos) {
+                nuevos.push(PV)
+            }
+        }
+
+
+
+
+        console.log("--------------MISMOS----------")
+
+        console.log(mismos)
+
+        console.log("--------------ELIMINADOS----------")
+
+        console.log(eliminados)
+
+        console.log("--------------NUEVOS----------")
+
+        console.log(nuevos)
+
+
+
+
+
+        await connection.query('START TRANSACTION')
+
+        mismos.forEach(async (item) => {
+            await connection.query(
+                `UPDATE productoventa 
+                SET 
+                CANTIDAD = ${item.Cantidad}, 
+                PRECIOVENTAPRODUCTO = ${item.PrecioVentaProducto} 
+                WHERE 
+                VENTA_ID = ${Pedido.Venta_id} AND 
+                PRODUCTO_ID = ${item.Producto_id};`
+            )
+        })
+
+        eliminados.forEach(async (item) => {
+            await connection.query(
+            `DELETE FROM productoventa 
+            WHERE 
+            _ID = ${item._id}}`
+                )
+        })
+
+        nuevos.forEach(item => {
+            
+        });
+
+
+
+
+
+
+
+
+        await connection.query("COMMIT;")
+        console.log("commit")
+        res.sendStatus(200)
+    } catch (error) {
+        await connection.query("ROLLBACK;")
+        console.log("🚀rollback", error)
+        res.sendStatus(500)
+    } finally {
+        await connection.query("COMMIT;")
+    }
+}
+
 export const methods = {
     getPedidos,
     deletePedido,
-    getPedido
+    getPedido,
+    CompletarPedido
 };

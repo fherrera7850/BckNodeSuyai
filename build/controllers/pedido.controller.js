@@ -211,9 +211,201 @@ var deletePedido = /*#__PURE__*/function () {
   };
 }();
 
+var CompletarPedido = /*#__PURE__*/function () {
+  var _ref4 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(req, res) {
+    var _req$body, Venta, ProductosVenta, Pedido, connection, datosVenta, datosProductoVenta, datosPedido, eliminados, nuevos, mismos, keyDatosPV, key, PV, _keyDatosPV, estaEnMismos, _key, _PV, keyProductosVenta, _PV2, _estaEnMismos, keyMismos;
+
+    return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+      while (1) {
+        switch (_context6.prev = _context6.next) {
+          case 0:
+            _req$body = req.body, Venta = _req$body.Venta, ProductosVenta = _req$body.ProductosVenta, Pedido = _req$body.Pedido;
+            console.log("🚀 ~ file: pedido.controller.js:116 ~ CompletarPedido ~ Pedido:", Pedido);
+            console.log("🚀 ~ file: pedido.controller.js:116 ~ CompletarPedido ~ Venta:", Venta);
+            /*  let fx = Venta.Fecha.toString()
+             fx = fx.replace(/T/g, " ")
+             fx = fx.replace(/Z/g, "")
+             Venta.Fecha = fx
+             if (Pedido)
+                 Pedido.FechaCreacion = fx
+             console.log("🚀 ~ file: venta.controller.js ~ line 8 ~ addVenta ~ fx", fx) */
+
+            _context6.next = 5;
+            return (0, _database.getConnection)();
+
+          case 5:
+            connection = _context6.sent;
+            _context6.prev = 6;
+            _context6.next = 9;
+            return connection.query("select * from venta where _id = ".concat(Pedido.Venta_id));
+
+          case 9:
+            datosVenta = _context6.sent;
+            _context6.next = 12;
+            return connection.query("select * from productoventa where Venta_id = ".concat(Pedido.Venta_id));
+
+          case 12:
+            datosProductoVenta = _context6.sent;
+            _context6.next = 15;
+            return connection.query("select * from pedido where Venta_id = ".concat(Pedido.Venta_id));
+
+          case 15:
+            datosPedido = _context6.sent;
+            eliminados = [];
+            nuevos = [];
+            mismos = []; //identifica los que setan en ambos
+
+            for (keyDatosPV in datosProductoVenta) {
+              for (key in ProductosVenta) {
+                PV = {
+                  Producto_id: ProductosVenta[key]._id,
+                  Cantidad: ProductosVenta[key].Cantidad,
+                  PrecioVentaProducto: ProductosVenta[key].PrecioVenta > 0 ? ProductosVenta[key].PrecioVenta : ProductosVenta[key].Precio
+                };
+
+                if (PV.Producto_id === datosProductoVenta[keyDatosPV].Producto_id) {
+                  //Se guardan en el array de los que ya están para hacer update
+                  mismos.push(PV);
+                }
+              }
+            } //identifica eliminados
+
+
+            for (_keyDatosPV in datosProductoVenta) {
+              estaEnMismos = false;
+
+              for (_key in mismos) {
+                _PV = {
+                  Producto_id: ProductosVenta[_key]._id
+                };
+
+                if (mismos[_key].Producto_id === datosProductoVenta[_keyDatosPV].Producto_id) {
+                  estaEnMismos = true;
+                }
+              }
+
+              if (!estaEnMismos) {
+                eliminados.push(datosProductoVenta[_keyDatosPV]);
+              }
+            } //identifica nuevos
+
+
+            for (keyProductosVenta in ProductosVenta) {
+              _PV2 = {
+                Producto_id: ProductosVenta[keyProductosVenta]._id,
+                Cantidad: ProductosVenta[keyProductosVenta].Cantidad,
+                PrecioVentaProducto: ProductosVenta[keyProductosVenta].PrecioVenta > 0 ? ProductosVenta[keyProductosVenta].PrecioVenta : ProductosVenta[keyProductosVenta].Precio
+              };
+              _estaEnMismos = false;
+
+              for (keyMismos in mismos) {
+                if (mismos[keyMismos].Producto_id === _PV2.Producto_id) {
+                  _estaEnMismos = true;
+                }
+              }
+
+              if (!_estaEnMismos) {
+                nuevos.push(_PV2);
+              }
+            }
+
+            console.log("--------------MISMOS----------");
+            console.log(mismos);
+            console.log("--------------ELIMINADOS----------");
+            console.log(eliminados);
+            console.log("--------------NUEVOS----------");
+            console.log(nuevos);
+            _context6.next = 30;
+            return connection.query('START TRANSACTION');
+
+          case 30:
+            mismos.forEach( /*#__PURE__*/function () {
+              var _ref5 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(item) {
+                return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+                  while (1) {
+                    switch (_context4.prev = _context4.next) {
+                      case 0:
+                        _context4.next = 2;
+                        return connection.query("UPDATE productoventa \n                SET \n                CANTIDAD = ".concat(item.Cantidad, ", \n                PRECIOVENTAPRODUCTO = ").concat(item.PrecioVentaProducto, " \n                WHERE \n                VENTA_ID = ").concat(Pedido.Venta_id, " AND \n                PRODUCTO_ID = ").concat(item.Producto_id, ";"));
+
+                      case 2:
+                      case "end":
+                        return _context4.stop();
+                    }
+                  }
+                }, _callee4);
+              }));
+
+              return function (_x9) {
+                return _ref5.apply(this, arguments);
+              };
+            }());
+            eliminados.forEach( /*#__PURE__*/function () {
+              var _ref6 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(item) {
+                return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+                  while (1) {
+                    switch (_context5.prev = _context5.next) {
+                      case 0:
+                        _context5.next = 2;
+                        return connection.query("DELETE FROM productoventa \n            WHERE \n            _ID = ".concat(item._id, "}"));
+
+                      case 2:
+                      case "end":
+                        return _context5.stop();
+                    }
+                  }
+                }, _callee5);
+              }));
+
+              return function (_x10) {
+                return _ref6.apply(this, arguments);
+              };
+            }());
+            nuevos.forEach(function (item) {});
+            _context6.next = 35;
+            return connection.query("COMMIT;");
+
+          case 35:
+            console.log("commit");
+            res.sendStatus(200);
+            _context6.next = 45;
+            break;
+
+          case 39:
+            _context6.prev = 39;
+            _context6.t0 = _context6["catch"](6);
+            _context6.next = 43;
+            return connection.query("ROLLBACK;");
+
+          case 43:
+            console.log("🚀rollback", _context6.t0);
+            res.sendStatus(500);
+
+          case 45:
+            _context6.prev = 45;
+            _context6.next = 48;
+            return connection.query("COMMIT;");
+
+          case 48:
+            return _context6.finish(45);
+
+          case 49:
+          case "end":
+            return _context6.stop();
+        }
+      }
+    }, _callee6, null, [[6, 39, 45, 49]]);
+  }));
+
+  return function CompletarPedido(_x7, _x8) {
+    return _ref4.apply(this, arguments);
+  };
+}();
+
 var methods = {
   getPedidos: getPedidos,
   deletePedido: deletePedido,
-  getPedido: getPedido
+  getPedido: getPedido,
+  CompletarPedido: CompletarPedido
 };
 exports.methods = methods;

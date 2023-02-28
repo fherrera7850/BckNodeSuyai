@@ -12,5 +12,6 @@ var _pedido = require("../controllers/pedido.controller");
 var router = (0, _express.Router)();
 router.get("/", _pedido.methods.getPedidos);
 router.get("/:_id", _pedido.methods.getPedido);
+router.post("/CompletarPedido", _pedido.methods.CompletarPedido);
 var _default = router;
 exports["default"] = _default;
