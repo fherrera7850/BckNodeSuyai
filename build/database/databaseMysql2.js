@@ -1,6 +1,6 @@
 "use strict";
 
-var _promiseMysql = _interopRequireDefault(require("promise-mysql"));
+var _mysql = _interopRequireDefault(require("mysql2"));
 
 var _config = _interopRequireDefault(require("./../config"));
 
@@ -12,15 +12,17 @@ var parameters = {
   user: _config["default"].user,
   password: _config["default"].password,
   port: _config["default"].port,
-  connectTimeout: 100000
-}; //console.log("🚀 ~ file: database.js ~ line 11 ~ parameters", parameters)
+  connectionLimit: 10,
+  multipleStatements: true
+};
+console.log("🚀 ~ file: databaseMysql2.js:12 ~ parameters:", parameters);
 
-var connection = _promiseMysql["default"].createPool(parameters);
+var connection = _mysql["default"].createPool(parameters);
 
-var getConnection = function getConnection() {
+var getConnectionMysql2 = function getConnectionMysql2() {
   return connection;
 };
 
 module.exports = {
-  getConnection: getConnection
+  getConnectionMysql2: getConnectionMysql2
 };

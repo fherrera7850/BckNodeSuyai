@@ -1,4 +1,5 @@
 import { getConnection } from "../database/database";
+import { getConnectionMysql2 } from "../database/databaseMysql2"
 
 const getPedidos = async (req, res) => {
     try {
@@ -110,149 +111,189 @@ const getPedido = async (req, res) => {
 const deletePedido = async (req, res) => {
 };
 
-const CompletarPedido = async (req, res) => {
+const CompletarPedido = async (req, res) => { //DEPRECADO, USAR 2
 
     const { Venta, ProductosVenta, Pedido } = req.body
     console.log("🚀 ~ file: pedido.controller.js:116 ~ CompletarPedido ~ Pedido:", Pedido)
     console.log("🚀 ~ file: pedido.controller.js:116 ~ CompletarPedido ~ Venta:", Venta)
-    /*  let fx = Venta.Fecha.toString()
-     fx = fx.replace(/T/g, " ")
-     fx = fx.replace(/Z/g, "")
-     Venta.Fecha = fx
-     if (Pedido)
-         Pedido.FechaCreacion = fx
-     console.log("🚀 ~ file: venta.controller.js ~ line 8 ~ addVenta ~ fx", fx) */
+    let fx = Venta.Fecha.toString()
+    fx = fx.replace(/T/g, " ")
+    fx = fx.replace(/Z/g, "")
+    Venta.Fecha = fx
 
 
     const connection = await getConnection();
 
     try {
+        await connection.query('START TRANSACTION', async (err, rows) => {
+            const datosProductoVenta = await connection.query(`select * from productoventa where Venta_id = ${Pedido.Venta_id}`)
 
-        const datosVenta = await connection.query(`select * from venta where _id = ${Pedido.Venta_id}`)
-        const datosProductoVenta = await connection.query(`select * from productoventa where Venta_id = ${Pedido.Venta_id}`)
-        const datosPedido = await connection.query(`select * from pedido where Venta_id = ${Pedido.Venta_id}`)
+            let eliminados = []
+            let nuevos = []
+            let mismos = []
 
+            //identifica los que setan en ambos
+            for (const keyDatosPV in datosProductoVenta) {
+                for (const key in ProductosVenta) {
 
-        let eliminados = []
-        let nuevos = []
-        let mismos = []
+                    let PV = {
+                        Producto_id: ProductosVenta[key]._id,
+                        Cantidad: ProductosVenta[key].Cantidad,
+                        PrecioVentaProducto: ProductosVenta[key].PrecioVenta > 0 ? ProductosVenta[key].PrecioVenta : ProductosVenta[key].Precio
+                    }
 
+                    if (PV.Producto_id === datosProductoVenta[keyDatosPV].Producto_id) {
+                        //Se guardan en el array de los que ya están para hacer update
+                        mismos.push(PV)
+                    }
+                }
+            }
 
+            //identifica eliminados
+            for (const keyDatosPV in datosProductoVenta) {
 
-        //identifica los que setan en ambos
-        for (const keyDatosPV in datosProductoVenta) {
-            for (const key in ProductosVenta) {
+                let estaEnMismos = false
+
+                for (const key in mismos) {
+                    let PV = {
+                        Producto_id: ProductosVenta[key]._id
+                    }
+
+                    if (mismos[key].Producto_id === datosProductoVenta[keyDatosPV].Producto_id) {
+                        estaEnMismos = true
+                    }
+                }
+
+                if (!estaEnMismos) {
+                    eliminados.push(datosProductoVenta[keyDatosPV])
+                }
+            }
+
+            //identifica nuevos
+            for (const keyProductosVenta in ProductosVenta) {
 
                 let PV = {
-                    Producto_id: ProductosVenta[key]._id,
-                    Cantidad: ProductosVenta[key].Cantidad,
-                    PrecioVentaProducto: ProductosVenta[key].PrecioVenta > 0 ? ProductosVenta[key].PrecioVenta : ProductosVenta[key].Precio
+                    Venta_id: Pedido.Venta_id,
+                    Producto_id: ProductosVenta[keyProductosVenta]._id,
+                    Cantidad: ProductosVenta[keyProductosVenta].Cantidad,
+                    PrecioVentaProducto: ProductosVenta[keyProductosVenta].PrecioVenta > 0 ? ProductosVenta[keyProductosVenta].PrecioVenta : ProductosVenta[keyProductosVenta].Precio
                 }
 
-                if (PV.Producto_id === datosProductoVenta[keyDatosPV].Producto_id) {
-                    //Se guardan en el array de los que ya están para hacer update
-                    mismos.push(PV)
-                }
-            }
-        }
+                let estaEnMismos = false
 
-        //identifica eliminados
-        for (const keyDatosPV in datosProductoVenta) {
-
-            let estaEnMismos = false
-
-            for (const key in mismos) {
-                let PV = {
-                    Producto_id: ProductosVenta[key]._id
+                for (const keyMismos in mismos) {
+                    if (mismos[keyMismos].Producto_id === PV.Producto_id) {
+                        estaEnMismos = true
+                    }
                 }
 
-                if (mismos[key].Producto_id === datosProductoVenta[keyDatosPV].Producto_id) {
-                    estaEnMismos = true
+                if (!estaEnMismos) {
+                    nuevos.push(PV)
                 }
             }
 
-            if (!estaEnMismos) {
-                eliminados.push(datosProductoVenta[keyDatosPV])
-            }
-        }
+            console.log("--------------MISMOS----------")
+            console.log(mismos)
 
-        //identifica nuevos
-        for (const keyProductosVenta in ProductosVenta) {
+            console.log("--------------ELIMINADOS----------")
+            console.log(eliminados)
 
-            let PV = {
-                Producto_id: ProductosVenta[keyProductosVenta]._id,
-                Cantidad: ProductosVenta[keyProductosVenta].Cantidad,
-                PrecioVentaProducto: ProductosVenta[keyProductosVenta].PrecioVenta > 0 ? ProductosVenta[keyProductosVenta].PrecioVenta : ProductosVenta[keyProductosVenta].Precio
-            }
+            console.log("--------------NUEVOS----------")
+            console.log(nuevos)
 
-            let estaEnMismos = false
+            console.log("--------------VENTA----------")
+            console.log(Venta)
 
-            for (const keyMismos in mismos) {
-                if (mismos[keyMismos].Producto_id === PV.Producto_id) {
-                    estaEnMismos = true
-                }
-            }
-
-            if (!estaEnMismos) {
-                nuevos.push(PV)
-            }
-        }
+            console.log("--------------PEDIDO----------")
+            console.log(Pedido)
 
 
 
-
-        console.log("--------------MISMOS----------")
-
-        console.log(mismos)
-
-        console.log("--------------ELIMINADOS----------")
-
-        console.log(eliminados)
-
-        console.log("--------------NUEVOS----------")
-
-        console.log(nuevos)
-
-
-
-
-
-        await connection.query('START TRANSACTION')
-
-        mismos.forEach(async (item) => {
-            await connection.query(
-                `UPDATE productoventa 
-                SET 
-                CANTIDAD = ${item.Cantidad}, 
-                PRECIOVENTAPRODUCTO = ${item.PrecioVentaProducto} 
-                WHERE 
-                VENTA_ID = ${Pedido.Venta_id} AND 
-                PRODUCTO_ID = ${item.Producto_id};`
-            )
-        })
-
-        eliminados.forEach(async (item) => {
-            await connection.query(
-            `DELETE FROM productoventa 
-            WHERE 
-            _ID = ${item._id}}`
+            for (const k in mismos) {
+                await connection.query(
+                    `UPDATE productoventa 
+                    SET 
+                    CANTIDAD = ${mismos[k].Cantidad}, 
+                    PRECIOVENTAPRODUCTO = ${mismos[k].PrecioVentaProducto} 
+                    WHERE 
+                    VENTA_ID = ${Pedido.Venta_id} AND 
+                    PRODUCTO_ID = ${mismos[k].Producto_id};`
                 )
+            }
+
+
+            /* mismos.forEach(async (item) => {
+                await connection.query(
+                    `UPDATE productoventa 
+                    SET 
+                    CANTIDAD = ${item.Cantidad}, 
+                    PRECIOVENTAPRODUCTO = ${item.PrecioVentaProducto} 
+                    WHERE 
+                    VENTA_ID = ${Pedido.Venta_id} AND 
+                    PRODUCTO_ID = ${item.Producto_id};`
+                )
+            }) */
+
+            for (const k in eliminados) {
+                await connection.query(
+                    `DELETE FROM productoventa 
+                WHERE 
+                _ID = ${eliminados[k]._id};`
+                )
+            }
+
+
+            /* eliminados.forEach(async (item) => {
+                await connection.query(
+                    `DELETE FROM productoventa 
+                WHERE 
+                _ID = ${item._id};`
+                )
+            }) */
+
+            for (const k in nuevos) {
+                await connection.query(
+                    `INSERT INTO productoventa 
+                    SET ?`, nuevos[k])
+            }
+
+            /* nuevos.forEach(async (item) => {
+                await connection.query(
+                    `INSERT INTO productoventa 
+                    SET ?`, item)
+            }) */
+
+            let QryPedido = `UPDATE pedido `
+            QryPedido += `SET `
+            QryPedido += Pedido.Direccion ? `DIRECCION = '${Pedido.Direccion}' , ` : `DIRECCION = null, `
+            QryPedido += Pedido.Telefono ? `TELEFONO = '${Pedido.Telefono}' , ` : `TELEFONO = null, `
+            QryPedido += `FECHAENTREGA = '${Pedido.FechaEntrega}', `
+            QryPedido += Pedido.Nota ? `NOTA = '${Pedido.Nota}', ` : `NOTA = null, `
+            QryPedido += `ESTADO = 'C' `
+            QryPedido += `WHERE `
+            QryPedido += `VENTA_ID = ${Pedido.Venta_id};`
+
+            await connection.query(QryPedido)
+
+            let QryVenta = `UPDATE venta `
+            QryVenta += `SET `
+            QryVenta += `MEDIOPAGO = ${Venta.MedioPago} , `
+            QryVenta += `PRECIOTOTALVENTA = ${Venta.PrecioTotalVenta} , `
+            QryVenta += Venta.Cliente_id ? `CLIENTE_ID = ${Venta.Cliente_id} , ` : `CLIENTE_ID = null, `
+            QryVenta += `FECHA = '${Venta.Fecha}' , `
+            QryVenta += `DCTO = ${Venta.Dcto} , `
+            QryVenta += Venta.Observacion ? `OBSERVACION = '${Venta.Observacion}' ` : `OBSERVACION = null `
+            QryVenta += `WHERE `
+            QryVenta += `_ID = ${Pedido.Venta_id}; `
+
+            await connection.query(QryVenta)
+
+            await connection.query('COMMIT;', async (err, rows) => {
+                console.log("commit")
+                res.sendStatus(200)
+            })
         })
 
-        nuevos.forEach(item => {
-            
-        });
-
-
-
-
-
-
-
-
-        await connection.query("COMMIT;")
-        console.log("commit")
-        res.sendStatus(200)
     } catch (error) {
         await connection.query("ROLLBACK;")
         console.log("🚀rollback", error)
@@ -262,9 +303,301 @@ const CompletarPedido = async (req, res) => {
     }
 }
 
+const CompletarPedido2 = async (req, res) => {
+
+    const { Venta, ProductosVenta, Pedido } = req.body
+    console.log("🚀 ~ file: pedido.controller.js:116 ~ CompletarPedido ~ Pedido:", Pedido)
+    console.log("🚀 ~ file: pedido.controller.js:116 ~ CompletarPedido ~ Venta:", Venta)
+    let fx = Venta.Fecha.toString()
+    fx = fx.replace(/T/g, " ")
+    fx = fx.replace(/Z/g, "")
+    Venta.Fecha = fx
+
+    const connection1 = await getConnection();
+    const datosProductoVenta = await connection1.query(`select * from productoventa where Venta_id = ${Pedido.Venta_id}`)
+
+    let eliminados = []
+    let nuevos = []
+    let mismos = []
+
+    //identifica los que setan en ambos
+    for (const keyDatosPV in datosProductoVenta) {
+        for (const key in ProductosVenta) {
+
+            let PV = {
+                Producto_id: ProductosVenta[key]._id,
+                Cantidad: ProductosVenta[key].Cantidad,
+                PrecioVentaProducto: ProductosVenta[key].PrecioVenta > 0 ? ProductosVenta[key].PrecioVenta : ProductosVenta[key].Precio
+            }
+
+            if (PV.Producto_id === datosProductoVenta[keyDatosPV].Producto_id) {
+                //Se guardan en el array de los que ya están para hacer update
+                mismos.push(PV)
+            }
+        }
+    }
+
+    //identifica eliminados
+    for (const keyDatosPV in datosProductoVenta) {
+
+        let estaEnMismos = false
+
+        for (const key in mismos) {
+            let PV = {
+                Producto_id: ProductosVenta[key]._id
+            }
+
+            if (mismos[key].Producto_id === datosProductoVenta[keyDatosPV].Producto_id) {
+                estaEnMismos = true
+            }
+        }
+
+        if (!estaEnMismos) {
+            eliminados.push(datosProductoVenta[keyDatosPV])
+        }
+    }
+
+    //identifica nuevos
+    for (const keyProductosVenta in ProductosVenta) {
+
+        let PV = {
+            Venta_id: Pedido.Venta_id,
+            Producto_id: ProductosVenta[keyProductosVenta]._id,
+            Cantidad: ProductosVenta[keyProductosVenta].Cantidad,
+            PrecioVentaProducto: ProductosVenta[keyProductosVenta].PrecioVenta > 0 ? ProductosVenta[keyProductosVenta].PrecioVenta : ProductosVenta[keyProductosVenta].Precio
+        }
+
+        let estaEnMismos = false
+
+        for (const keyMismos in mismos) {
+            if (mismos[keyMismos].Producto_id === PV.Producto_id) {
+                estaEnMismos = true
+            }
+        }
+
+        if (!estaEnMismos) {
+            nuevos.push(PV)
+        }
+    }
+
+    console.log("--------------MISMOS----------")
+    console.log(mismos)
+
+    console.log("--------------ELIMINADOS----------")
+    console.log(eliminados)
+
+    console.log("--------------NUEVOS----------")
+    console.log(nuevos)
+
+    console.log("--------------VENTA----------")
+    console.log(Venta)
+
+    console.log("--------------PEDIDO----------")
+    console.log(Pedido)
+
+
+    return new Promise((resolve, reject) => {
+        getConnectionMysql2().getConnection((err, connection) => {
+            if (err) {
+                console.log("🚀 ~ file: pedido.controller.js:326 ~ getConnectionMysql2 ~ err:", err)
+                res.sendStatus(500)
+                return reject("Error occurred while getting the connection", err);
+            }
+            return connection.beginTransaction(err => {
+                if (err) {
+                    console.log("🚀 ~ file: pedido.controller.js:331 ~ getConnectionMysql2 ~ err:", err)
+                    connection.release();
+                    res.sendStatus(500)
+                    return reject("Error occurred while creating the transaction", err);
+                }
+                for (const k in mismos) {
+                    connection.execute(
+                        `UPDATE productoventa 
+                        SET 
+                        CANTIDAD = ${mismos[k].Cantidad}, 
+                        PRECIOVENTAPRODUCTO = ${mismos[k].PrecioVentaProducto} 
+                        WHERE 
+                        VENTA_ID = ${Pedido.Venta_id} AND 
+                        PRODUCTO_ID = ${mismos[k].Producto_id};`, (err) => {
+                        if (err) {
+                            return connection.rollback(() => {
+                                connection.release();
+                                res.sendStatus(500)
+                                return reject("UPDATE productoventa failed", err)
+                            });
+                        }
+                    })
+                }
+                for (const k in eliminados) {
+                    connection.execute(
+                        `DELETE FROM productoventa 
+                        WHERE 
+                        _ID = ${eliminados[k]._id};`, (err) => {
+                        if (err) {
+                            return connection.rollback(() => {
+                                connection.release();
+                                res.sendStatus(500)
+                                return reject("DELETE FROM productoventa failed", err);
+                            });
+                        }
+                    })
+                }
+
+                for (const k in nuevos) {
+                    connection.execute(
+                        `INSERT INTO productoventa (VENTA_ID, PRODUCTO_ID, CANTIDAD, PRECIOVENTAPRODUCTO)
+                        VALUES (?,?,?,?)`, [nuevos[k].Venta_id, nuevos[k].Producto_id, nuevos[k].Cantidad, nuevos[k].PrecioVentaProducto], (err) => {
+                        if (err) {
+                            return connection.rollback(() => {
+                                connection.release();
+                                res.sendStatus(500)
+                                return reject("INSERT INTO productoventa failed", err);
+                            });
+                        }
+                    })
+
+                }
+
+                let QryPedido = `UPDATE pedido `
+                QryPedido += `SET `
+                QryPedido += Pedido.Direccion ? `DIRECCION = '${Pedido.Direccion}' , ` : `DIRECCION = null, `
+                QryPedido += Pedido.Telefono ? `TELEFONO = '${Pedido.Telefono}' , ` : `TELEFONO = null, `
+                QryPedido += `FECHAENTREGA = '${Pedido.FechaEntrega}', `
+                QryPedido += Pedido.Nota ? `NOTA = '${Pedido.Nota}', ` : `NOTA = null, `
+                QryPedido += `ESTADO = 'C' `
+                QryPedido += `WHERE `
+                QryPedido += `VENTA_ID = ${Pedido.Venta_id};`
+
+                return connection.execute(
+                    QryPedido, (err) => {
+                        if (err) {
+                            return connection.rollback(() => {
+                                connection.release();
+                                return reject("UPDATE pedido failed", err)
+                            });
+                        }
+
+                        let QryVenta = `UPDATE venta `
+                        QryVenta += `SET `
+                        QryVenta += `MEDIOPAGO = ${Venta.MedioPago} , `
+                        QryVenta += `PRECIOTOTALVENTA = ${Venta.PrecioTotalVenta} , `
+                        QryVenta += Venta.Cliente_id ? `CLIENTE_ID = ${Venta.Cliente_id} , ` : `CLIENTE_ID = null, `
+                        QryVenta += `FECHA = '${Venta.Fecha}' , `
+                        QryVenta += `DCTO = ${Venta.Dcto} , `
+                        QryVenta += Venta.Observacion ? `OBSERVACION = '${Venta.Observacion}' ` : `OBSERVACION = null `
+                        QryVenta += `WHERE `
+                        QryVenta += `_ID = ${Pedido.Venta_id}; `
+
+                        return connection.execute(
+                            QryVenta, (err) => {
+                                if (err) {
+                                    return connection.rollback(() => {
+                                        connection.release();
+                                        return reject("UPDATE venta failed");
+                                    });
+                                }
+
+                                return connection.commit((err) => {
+                                    if (err) {
+                                        return connection.rollback(() => {
+                                            connection.release();
+                                            res.sendStatus(500)
+                                            return reject("Commit failed");
+                                        });
+                                    }
+                                    connection.release();
+                                    res.sendStatus(200)
+                                });
+
+                            })
+                    }
+                )
+            });
+
+        });
+
+    });
+}
+
+const CompletarPedidoRapido = async (req, res) => {
+
+    const { id_venta } = req.body
+
+    return new Promise((resolve, reject) => {
+        getConnectionMysql2().getConnection((err, connection) => {
+            if (err) {
+                console.log("🚀 ~ file: pedido.controller.js:530 ~ getConnectionMysql2 ~ err:", err)
+                res.sendStatus(500)
+                return reject("Error occurred while getting the connection", err);
+            }
+            return connection.beginTransaction(err => {
+                if (err) {
+                    console.log("🚀 ~ file: pedido.controller.js:535 ~ getConnectionMysql2 ~ err:", err)
+                    connection.release();
+                    res.sendStatus(500)
+                    return reject("Error occurred while creating the transaction", err);
+                }
+
+                let QryPedido = `UPDATE pedido `
+                QryPedido += `SET `
+                QryPedido += `ESTADO = 'C' `
+                QryPedido += `WHERE `
+                QryPedido += `VENTA_ID = ${id_venta};`
+
+                connection.execute(QryPedido, (err) => {
+                    if (err) {
+                        return connection.rollback(() => {
+                            connection.release();
+                            res.sendStatus(500)
+                            return reject("UPDATE pedido failed", err)
+                        });
+                    }
+
+                    let QryVenta = `UPDATE venta `
+                    QryVenta += `SET `
+                    QryVenta += `FECHA = UTC_DATE `
+                    QryVenta += `WHERE `
+                    QryVenta += `_ID = ${id_venta}; `
+
+                    connection.execute(QryVenta, (err) => {
+                        if (err) {
+                            return connection.rollback(() => {
+                                connection.release();
+                                res.sendStatus(500)
+                                return reject("UPDATE venta failed", err)
+                            });
+                        }
+
+                        return connection.commit((err) => {
+                            if (err) {
+                                return connection.rollback(() => {
+                                    connection.release();
+                                    res.sendStatus(500)
+                                    return reject("Commit failed");
+                                });
+                            }
+                            connection.release();
+                            res.sendStatus(200)
+                        });
+
+                    })
+                })
+
+            });
+
+        })
+    }
+    )
+
+
+
+}
+
 export const methods = {
     getPedidos,
     deletePedido,
     getPedido,
-    CompletarPedido
+    CompletarPedido,
+    CompletarPedido2,
+    CompletarPedidoRapido
 };

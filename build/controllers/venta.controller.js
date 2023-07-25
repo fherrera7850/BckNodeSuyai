@@ -322,7 +322,7 @@ var getHistorial30Dias = /*#__PURE__*/function () {
 
 var getEstadisticas = /*#__PURE__*/function () {
   var _ref5 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(req, res) {
-    var connection, qryTotales, resultTotales, qryMediosDePago, resultMediosDePago, qryMasVendidos, resultMasVendidos;
+    var connection, ObjEstadisticas, qryTotales, resultTotales, qryMediosDePago, resultMediosDePago, qryMasVendidos, resultMasVendidos;
     return _regeneratorRuntime().wrap(function _callee5$(_context5) {
       while (1) {
         switch (_context5.prev = _context5.next) {
@@ -333,83 +333,57 @@ var getEstadisticas = /*#__PURE__*/function () {
 
           case 3:
             connection = _context5.sent;
-            qryTotales = "SELECT ";
-            qryTotales += "count(_id) NroVentas, ";
-            qryTotales += "COALESCE(sum(PrecioTotalVenta), 0) SumaVentas, ";
-            qryTotales += "avg(preciototalventa) PromedioVentas, ";
-            qryTotales += "GananciaVentas-sum(Dcto) GananciaVentas ";
-            qryTotales += "FROM venta, (select (sum(pv.PrecioVentaProducto*pv.cantidad) - sum(p.Costo*pv.cantidad)) GananciaVentas ";
-            qryTotales += "from productoventa pv inner join producto p ";
-            qryTotales += "on pv.Producto_id=p._id inner join venta v ";
-            qryTotales += "on v._id=pv.Venta_id ";
-            qryTotales += "where ";
-            qryTotales += 'v._id not in (select Venta_id from pedido) and ';
-            qryTotales += "DATE_SUB(v.Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59') temp2 where  ";
-            qryTotales += "DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' ";
-            qryTotales += "and _id not in (select Venta_id from pedido)";
-            _context5.next = 20;
+            ObjEstadisticas = {
+              Generales: null,
+              MasVendidos: null,
+              MediosDePago: null
+            };
+            qryTotales = "CALL Sel_EstadisticasGenerales('" + req.params.FechaInicio + "', '" + req.params.FechaFin + "');";
+            _context5.next = 8;
             return connection.query(qryTotales);
 
-          case 20:
+          case 8:
             resultTotales = _context5.sent;
-            console.log("🚀 ~  resultTotales", resultTotales);
-            qryMediosDePago = "select ";
-            qryMediosDePago += "CASE ";
-            qryMediosDePago += "WHEN mediopago = 0 THEN 'Efectivo' ";
-            qryMediosDePago += "WHEN mediopago = 1 THEN 'Transferencia' ";
-            qryMediosDePago += "WHEN mediopago = 2 THEN 'Tarjeta' ";
-            qryMediosDePago += "ELSE '-' ";
-            qryMediosDePago += "END mediopago, count(mediopago) cantidad ";
-            qryMediosDePago += "from venta ";
-            qryMediosDePago += "where ";
-            qryMediosDePago += '_id not in (select Venta_id from pedido) and ';
-            qryMediosDePago += "DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' ";
-            qryMediosDePago += "group by mediopago order by cantidad desc;";
-            _context5.next = 36;
+            console.log("🚀 ~  resultTotales 1era query", resultTotales);
+            qryMediosDePago = "CALL Sel_EstadisticasMediosDePago('" + req.params.FechaInicio + "', '" + req.params.FechaFin + "');";
+            _context5.next = 13;
             return connection.query(qryMediosDePago);
 
-          case 36:
+          case 13:
             resultMediosDePago = _context5.sent;
-            console.log("🚀 ~  resultMediosDePago", resultMediosDePago);
-
-            if (resultTotales.length > 0) {
-              resultTotales[0].MediosDePago = resultMediosDePago;
-            }
-
-            qryMasVendidos = "select p.nombre, sum(cantidad) cantidad,sum(pv.PrecioVentaProducto*pv.Cantidad) total ";
-            qryMasVendidos += "from productoventa pv inner join producto p ";
-            qryMasVendidos += "on p._id=pv.Producto_id  inner join venta v ";
-            qryMasVendidos += "on v._id=pv.Venta_id ";
-            qryMasVendidos += "where DATE_SUB(v.Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' ";
-            qryMasVendidos += 'and v._id not in (select Venta_id from pedido) ';
-            qryMasVendidos += "group by pv.producto_id ";
-            qryMasVendidos += "order by cantidad desc;";
-            console.log("🚀 ~ file: venta.controller.js:189 ~ getEstadisticas ~ qryMasVendidos", qryMasVendidos);
-            _context5.next = 50;
+            console.log("🚀 ~  resultMediosDePago 2da consulta", resultMediosDePago);
+            qryMasVendidos = "CALL Sel_EstadisticasProductosMasVendidos('" + req.params.FechaInicio + "', '" + req.params.FechaFin + "');";
+            _context5.next = 18;
             return connection.query(qryMasVendidos);
 
-          case 50:
+          case 18:
             resultMasVendidos = _context5.sent;
-            console.log("🚀 ~ resultMasVendidos", resultMasVendidos);
-            resultTotales[0].MasVendidos = resultMasVendidos; //const result = await connection.query(qryTotales);
+            console.log("🚀 ~ resultMasVendidos 3eraq comsultas", resultMasVendidos);
 
-            res.json(resultTotales);
-            _context5.next = 61;
+            if (resultTotales.length > 0) {
+              ObjEstadisticas.Generales = resultTotales[0]; //pq trae la consulta como array y es solo 1 objeto
+
+              ObjEstadisticas.MediosDePago = resultMediosDePago[0];
+              ObjEstadisticas.MasVendidos = resultMasVendidos[0];
+            }
+
+            res.json(ObjEstadisticas);
+            _context5.next = 29;
             break;
 
-          case 56:
-            _context5.prev = 56;
+          case 24:
+            _context5.prev = 24;
             _context5.t0 = _context5["catch"](0);
             res.status(500);
             res.send(_context5.t0.message);
             console.log("🚀 ~ file: venta.controller.js:207 ~ getEstadisticas ~ error", _context5.t0);
 
-          case 61:
+          case 29:
           case "end":
             return _context5.stop();
         }
       }
-    }, _callee5, null, [[0, 56]]);
+    }, _callee5, null, [[0, 24]]);
   }));
 
   return function getEstadisticas(_x9, _x10) {

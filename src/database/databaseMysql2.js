@@ -1,4 +1,4 @@
-import mysql from "promise-mysql";
+import mysql from "mysql2";
 import config from "./../config";
 
 const parameters = {
@@ -7,15 +7,16 @@ const parameters = {
     user: config.user,
     password: config.password,
     port: config.port,
-    connectTimeout: 100000
+    connectionLimit: 10,
+    multipleStatements: true
 }
-//console.log("🚀 ~ file: database.js ~ line 11 ~ parameters", parameters)
+console.log("🚀 ~ file: databaseMysql2.js:12 ~ parameters:", parameters)
 const connection = mysql.createPool(parameters);
 
-const getConnection = () => {
+const getConnectionMysql2 = () => {
     return connection;
 };
 
 module.exports = {
-    getConnection
+    getConnectionMysql2
 };

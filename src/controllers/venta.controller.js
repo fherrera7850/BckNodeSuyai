@@ -150,62 +150,33 @@ const getEstadisticas = async (req, res) => {
 
         const connection = await getConnection();
 
-        let qryTotales = "SELECT "
-        qryTotales += "count(_id) NroVentas, "
-        qryTotales += "COALESCE(sum(PrecioTotalVenta), 0) SumaVentas, "
-        qryTotales += "avg(preciototalventa) PromedioVentas, "
-        qryTotales += "GananciaVentas-sum(Dcto) GananciaVentas "
-        qryTotales += "FROM venta, (select (sum(pv.PrecioVentaProducto*pv.cantidad) - sum(p.Costo*pv.cantidad)) GananciaVentas "
-        qryTotales += "from productoventa pv inner join producto p "
-        qryTotales += "on pv.Producto_id=p._id inner join venta v "
-        qryTotales += "on v._id=pv.Venta_id "
-        qryTotales += "where "
-        qryTotales += 'v._id not in (select Venta_id from pedido) and '
-        qryTotales += "DATE_SUB(v.Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59') temp2 where  "
-        qryTotales += "DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' "
-        qryTotales += "and _id not in (select Venta_id from pedido)"
-
-        const resultTotales = await connection.query(qryTotales);
-        console.log("🚀 ~  resultTotales", resultTotales)
-
-
-        let qryMediosDePago = "select "
-        qryMediosDePago += "CASE "
-        qryMediosDePago += "WHEN mediopago = 0 THEN 'Efectivo' "
-        qryMediosDePago += "WHEN mediopago = 1 THEN 'Transferencia' "
-        qryMediosDePago += "WHEN mediopago = 2 THEN 'Tarjeta' "
-        qryMediosDePago += "ELSE '-' "
-        qryMediosDePago += "END mediopago, count(mediopago) cantidad "
-        qryMediosDePago += "from venta "
-        qryMediosDePago += "where "
-        qryMediosDePago += '_id not in (select Venta_id from pedido) and '
-        qryMediosDePago += "DATE_SUB(Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' ";
-        qryMediosDePago += "group by mediopago order by cantidad desc;"
-
-        const resultMediosDePago = await connection.query(qryMediosDePago);
-        console.log("🚀 ~  resultMediosDePago", resultMediosDePago)
-
-        if (resultTotales.length > 0) {
-            resultTotales[0].MediosDePago = resultMediosDePago
+        let ObjEstadisticas = {
+            Generales: null,
+            MasVendidos: null,
+            MediosDePago: null
         }
 
-        let qryMasVendidos = "select p.nombre, sum(cantidad) cantidad,sum(pv.PrecioVentaProducto*pv.Cantidad) total "
-        qryMasVendidos += "from productoventa pv inner join producto p "
-        qryMasVendidos += "on p._id=pv.Producto_id  inner join venta v "
-        qryMasVendidos += "on v._id=pv.Venta_id "
-        qryMasVendidos += "where DATE_SUB(v.Fecha,INTERVAL 3 HOUR) BETWEEN '" + req.params.FechaInicio + " 00:00:00' AND '" + req.params.FechaFin + " 23:59:59' ";
-        qryMasVendidos += 'and v._id not in (select Venta_id from pedido) '
-        qryMasVendidos += "group by pv.producto_id "
-        qryMasVendidos += "order by cantidad desc;"
-        console.log("🚀 ~ file: venta.controller.js:189 ~ getEstadisticas ~ qryMasVendidos", qryMasVendidos)
+        let qryTotales = "CALL Sel_EstadisticasGenerales('" + req.params.FechaInicio + "', '" + req.params.FechaFin + "');";
+        const resultTotales = await connection.query(qryTotales);
+        console.log("🚀 ~  resultTotales 1era query", resultTotales)
 
+        let qryMediosDePago = "CALL Sel_EstadisticasMediosDePago('" + req.params.FechaInicio + "', '" + req.params.FechaFin + "');"
+        const resultMediosDePago = await connection.query(qryMediosDePago);
+        console.log("🚀 ~  resultMediosDePago 2da consulta", resultMediosDePago)
+
+        let qryMasVendidos = "CALL Sel_EstadisticasProductosMasVendidos('" + req.params.FechaInicio + "', '" + req.params.FechaFin + "');"
         const resultMasVendidos = await connection.query(qryMasVendidos);
-        console.log("🚀 ~ resultMasVendidos", resultMasVendidos)
+        console.log("🚀 ~ resultMasVendidos 3eraq comsultas", resultMasVendidos)
 
-        resultTotales[0].MasVendidos = resultMasVendidos
 
-        //const result = await connection.query(qryTotales);
-        res.json(resultTotales);
+        if (resultTotales.length > 0) {
+            ObjEstadisticas.Generales = resultTotales[0]; //pq trae la consulta como array y es solo 1 objeto
+            ObjEstadisticas.MediosDePago = resultMediosDePago[0];
+            ObjEstadisticas.MasVendidos = resultMasVendidos[0];
+        }
+
+        res.json(ObjEstadisticas);
+        
 
     } catch (error) {
         res.status(500);
