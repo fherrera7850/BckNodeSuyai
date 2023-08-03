@@ -45,7 +45,7 @@ var getPedidos = /*#__PURE__*/function () {
             resultFechas.forEach(function (element) {
               return element.Pedidos = [];
             });
-            qryAgrupados = 'SELECT ped._id Pedido_id, c._id Cliente_id, v._id Venta_id, c.Nombre, ped.Direccion, ped.Telefono, ped.FechaEntrega, ped.Estado, ped.Nota ';
+            qryAgrupados = 'SELECT ped._id Pedido_id, c._id Cliente_id, v._id Venta_id, c.Nombre, ped.Direccion, ped.Telefono, ped.FechaEntrega, ped.Estado, ped.Nota, v.PrecioTotalVenta ';
             qryAgrupados += 'FROM pedido ped ';
             qryAgrupados += 'LEFT JOIN venta v on v._id=ped.Venta_id ';
             qryAgrupados += 'LEFT JOIN cliente c on c._id=v.Cliente_id ORDER BY 1;';
@@ -196,16 +196,93 @@ var getPedido = /*#__PURE__*/function () {
 }();
 
 var deletePedido = /*#__PURE__*/function () {
-  var _ref3 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(req, res) {
-    return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+  var _ref3 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(req, res) {
+    var id_pedido, connection, callProcedureQuery;
+    return _regeneratorRuntime().wrap(function _callee4$(_context4) {
       while (1) {
-        switch (_context3.prev = _context3.next) {
+        switch (_context4.prev = _context4.next) {
           case 0:
+            _context4.prev = 0;
+            id_pedido = req.body.id_pedido;
+            console.log("🚀 id_pedido", id_pedido);
+            _context4.next = 5;
+            return (0, _database.getConnection)();
+
+          case 5:
+            connection = _context4.sent;
+            // Llamamos al procedimiento almacenado con un valor para PedidoID
+            callProcedureQuery = "CALL Del_Pedido(".concat(id_pedido, ", @Estado);"); // Ejecutamos la llamada al procedimiento
+
+            connection.query(callProcedureQuery, /*#__PURE__*/function () {
+              var _ref4 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(err, results) {
+                var selectEstadoQuery;
+                return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+                  while (1) {
+                    switch (_context3.prev = _context3.next) {
+                      case 0:
+                        if (!err) {
+                          _context3.next = 5;
+                          break;
+                        }
+
+                        console.error(err);
+                        res.status(500);
+                        res.send(err.toString());
+                        return _context3.abrupt("return");
+
+                      case 5:
+                        // Luego, ejecutamos una consulta adicional para obtener el valor de @Estado
+                        selectEstadoQuery = "SELECT @Estado AS Estado;"; // Ejecutamos la consulta para obtener el valor de @Estado
+
+                        connection.query(selectEstadoQuery, function (err, results) {
+                          if (err) {
+                            console.error(err);
+                            res.status(500);
+                            res.send(err.toString());
+                            return;
+                          }
+
+                          var estado = results[0].Estado;
+
+                          if (estado === 0) {
+                            // Ocurrió un error en el procedimiento almacenado
+                            res.status(500);
+                            res.send("Error: El procedimiento almacenado no pudo eliminar el registro.");
+                          } else {
+                            res.status(200); // Aquí puedes enviar una respuesta exitosa si lo deseas
+
+                            res.send("Registro eliminado correctamente.");
+                          }
+                        });
+
+                      case 7:
+                      case "end":
+                        return _context3.stop();
+                    }
+                  }
+                }, _callee3);
+              }));
+
+              return function (_x7, _x8) {
+                return _ref4.apply(this, arguments);
+              };
+            }());
+            _context4.next = 15;
+            break;
+
+          case 10:
+            _context4.prev = 10;
+            _context4.t0 = _context4["catch"](0);
+            console.error(_context4.t0);
+            res.status(500);
+            res.send(_context4.t0.toString());
+
+          case 15:
           case "end":
-            return _context3.stop();
+            return _context4.stop();
         }
       }
-    }, _callee3);
+    }, _callee4, null, [[0, 10]]);
   }));
 
   return function deletePedido(_x5, _x6) {
@@ -214,12 +291,12 @@ var deletePedido = /*#__PURE__*/function () {
 }();
 
 var CompletarPedido = /*#__PURE__*/function () {
-  var _ref4 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(req, res) {
+  var _ref5 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7(req, res) {
     var _req$body, Venta, ProductosVenta, Pedido, fx, connection;
 
-    return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+    return _regeneratorRuntime().wrap(function _callee7$(_context7) {
       while (1) {
-        switch (_context6.prev = _context6.next) {
+        switch (_context7.prev = _context7.next) {
           case 0:
             //DEPRECADO, USAR 2
             _req$body = req.body, Venta = _req$body.Venta, ProductosVenta = _req$body.ProductosVenta, Pedido = _req$body.Pedido;
@@ -229,26 +306,26 @@ var CompletarPedido = /*#__PURE__*/function () {
             fx = fx.replace(/T/g, " ");
             fx = fx.replace(/Z/g, "");
             Venta.Fecha = fx;
-            _context6.next = 9;
+            _context7.next = 9;
             return (0, _database.getConnection)();
 
           case 9:
-            connection = _context6.sent;
-            _context6.prev = 10;
-            _context6.next = 13;
+            connection = _context7.sent;
+            _context7.prev = 10;
+            _context7.next = 13;
             return connection.query('START TRANSACTION', /*#__PURE__*/function () {
-              var _ref5 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(err, rows) {
+              var _ref6 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(err, rows) {
                 var datosProductoVenta, eliminados, nuevos, mismos, keyDatosPV, key, PV, _keyDatosPV, estaEnMismos, _key, _PV, keyProductosVenta, _PV2, _estaEnMismos, keyMismos, k, _k, _k2, QryPedido, QryVenta;
 
-                return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+                return _regeneratorRuntime().wrap(function _callee6$(_context6) {
                   while (1) {
-                    switch (_context5.prev = _context5.next) {
+                    switch (_context6.prev = _context6.next) {
                       case 0:
-                        _context5.next = 2;
+                        _context6.next = 2;
                         return connection.query("select * from productoventa where Venta_id = ".concat(Pedido.Venta_id));
 
                       case 2:
-                        datosProductoVenta = _context5.sent;
+                        datosProductoVenta = _context6.sent;
                         eliminados = [];
                         nuevos = [];
                         mismos = []; //identifica los que setan en ambos
@@ -318,54 +395,54 @@ var CompletarPedido = /*#__PURE__*/function () {
                         console.log(Venta);
                         console.log("--------------PEDIDO----------");
                         console.log(Pedido);
-                        _context5.t0 = _regeneratorRuntime().keys(mismos);
+                        _context6.t0 = _regeneratorRuntime().keys(mismos);
 
                       case 20:
-                        if ((_context5.t1 = _context5.t0()).done) {
-                          _context5.next = 26;
+                        if ((_context6.t1 = _context6.t0()).done) {
+                          _context6.next = 26;
                           break;
                         }
 
-                        k = _context5.t1.value;
-                        _context5.next = 24;
+                        k = _context6.t1.value;
+                        _context6.next = 24;
                         return connection.query("UPDATE productoventa \n                    SET \n                    CANTIDAD = ".concat(mismos[k].Cantidad, ", \n                    PRECIOVENTAPRODUCTO = ").concat(mismos[k].PrecioVentaProducto, " \n                    WHERE \n                    VENTA_ID = ").concat(Pedido.Venta_id, " AND \n                    PRODUCTO_ID = ").concat(mismos[k].Producto_id, ";"));
 
                       case 24:
-                        _context5.next = 20;
+                        _context6.next = 20;
                         break;
 
                       case 26:
-                        _context5.t2 = _regeneratorRuntime().keys(eliminados);
+                        _context6.t2 = _regeneratorRuntime().keys(eliminados);
 
                       case 27:
-                        if ((_context5.t3 = _context5.t2()).done) {
-                          _context5.next = 33;
+                        if ((_context6.t3 = _context6.t2()).done) {
+                          _context6.next = 33;
                           break;
                         }
 
-                        _k = _context5.t3.value;
-                        _context5.next = 31;
+                        _k = _context6.t3.value;
+                        _context6.next = 31;
                         return connection.query("DELETE FROM productoventa \n                WHERE \n                _ID = ".concat(eliminados[_k]._id, ";"));
 
                       case 31:
-                        _context5.next = 27;
+                        _context6.next = 27;
                         break;
 
                       case 33:
-                        _context5.t4 = _regeneratorRuntime().keys(nuevos);
+                        _context6.t4 = _regeneratorRuntime().keys(nuevos);
 
                       case 34:
-                        if ((_context5.t5 = _context5.t4()).done) {
-                          _context5.next = 40;
+                        if ((_context6.t5 = _context6.t4()).done) {
+                          _context6.next = 40;
                           break;
                         }
 
-                        _k2 = _context5.t5.value;
-                        _context5.next = 38;
+                        _k2 = _context6.t5.value;
+                        _context6.next = 38;
                         return connection.query("INSERT INTO productoventa \n                    SET ?", nuevos[_k2]);
 
                       case 38:
-                        _context5.next = 34;
+                        _context6.next = 34;
                         break;
 
                       case 40:
@@ -383,7 +460,7 @@ var CompletarPedido = /*#__PURE__*/function () {
                         QryPedido += "ESTADO = 'C' ";
                         QryPedido += "WHERE ";
                         QryPedido += "VENTA_ID = ".concat(Pedido.Venta_id, ";");
-                        _context5.next = 51;
+                        _context6.next = 51;
                         return connection.query(QryPedido);
 
                       case 51:
@@ -397,88 +474,88 @@ var CompletarPedido = /*#__PURE__*/function () {
                         QryVenta += Venta.Observacion ? "OBSERVACION = '".concat(Venta.Observacion, "' ") : "OBSERVACION = null ";
                         QryVenta += "WHERE ";
                         QryVenta += "_ID = ".concat(Pedido.Venta_id, "; ");
-                        _context5.next = 63;
+                        _context6.next = 63;
                         return connection.query(QryVenta);
 
                       case 63:
-                        _context5.next = 65;
+                        _context6.next = 65;
                         return connection.query('COMMIT;', /*#__PURE__*/function () {
-                          var _ref6 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(err, rows) {
-                            return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+                          var _ref7 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(err, rows) {
+                            return _regeneratorRuntime().wrap(function _callee5$(_context5) {
                               while (1) {
-                                switch (_context4.prev = _context4.next) {
+                                switch (_context5.prev = _context5.next) {
                                   case 0:
                                     console.log("commit");
                                     res.sendStatus(200);
 
                                   case 2:
                                   case "end":
-                                    return _context4.stop();
+                                    return _context5.stop();
                                 }
                               }
-                            }, _callee4);
+                            }, _callee5);
                           }));
 
-                          return function (_x11, _x12) {
-                            return _ref6.apply(this, arguments);
+                          return function (_x13, _x14) {
+                            return _ref7.apply(this, arguments);
                           };
                         }());
 
                       case 65:
                       case "end":
-                        return _context5.stop();
+                        return _context6.stop();
                     }
                   }
-                }, _callee5);
+                }, _callee6);
               }));
 
-              return function (_x9, _x10) {
-                return _ref5.apply(this, arguments);
+              return function (_x11, _x12) {
+                return _ref6.apply(this, arguments);
               };
             }());
 
           case 13:
-            _context6.next = 21;
+            _context7.next = 21;
             break;
 
           case 15:
-            _context6.prev = 15;
-            _context6.t0 = _context6["catch"](10);
-            _context6.next = 19;
+            _context7.prev = 15;
+            _context7.t0 = _context7["catch"](10);
+            _context7.next = 19;
             return connection.query("ROLLBACK;");
 
           case 19:
-            console.log("🚀rollback", _context6.t0);
+            console.log("🚀rollback", _context7.t0);
             res.sendStatus(500);
 
           case 21:
-            _context6.prev = 21;
-            _context6.next = 24;
+            _context7.prev = 21;
+            _context7.next = 24;
             return connection.query("COMMIT;");
 
           case 24:
-            return _context6.finish(21);
+            return _context7.finish(21);
 
           case 25:
           case "end":
-            return _context6.stop();
+            return _context7.stop();
         }
       }
-    }, _callee6, null, [[10, 15, 21, 25]]);
+    }, _callee7, null, [[10, 15, 21, 25]]);
   }));
 
-  return function CompletarPedido(_x7, _x8) {
-    return _ref4.apply(this, arguments);
+  return function CompletarPedido(_x9, _x10) {
+    return _ref5.apply(this, arguments);
   };
 }();
 
 var CompletarPedido2 = /*#__PURE__*/function () {
-  var _ref7 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7(req, res) {
+  var _ref8 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8(req, res) {
     var _req$body2, Venta, ProductosVenta, Pedido, fx, connection1, datosProductoVenta, eliminados, nuevos, mismos, keyDatosPV, key, PV, _keyDatosPV2, estaEnMismos, _key2, _PV3, keyProductosVenta, _PV4, _estaEnMismos2, keyMismos;
 
-    return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+    return _regeneratorRuntime().wrap(function _callee8$(_context8) {
       while (1) {
-        switch (_context7.prev = _context7.next) {
+        switch (_context8.prev = _context8.next) {
           case 0:
             _req$body2 = req.body, Venta = _req$body2.Venta, ProductosVenta = _req$body2.ProductosVenta, Pedido = _req$body2.Pedido;
             console.log("🚀 ~ file: pedido.controller.js:116 ~ CompletarPedido ~ Pedido:", Pedido);
@@ -487,16 +564,16 @@ var CompletarPedido2 = /*#__PURE__*/function () {
             fx = fx.replace(/T/g, " ");
             fx = fx.replace(/Z/g, "");
             Venta.Fecha = fx;
-            _context7.next = 9;
+            _context8.next = 9;
             return (0, _database.getConnection)();
 
           case 9:
-            connection1 = _context7.sent;
-            _context7.next = 12;
+            connection1 = _context8.sent;
+            _context8.next = 12;
             return connection1.query("select * from productoventa where Venta_id = ".concat(Pedido.Venta_id));
 
           case 12:
-            datosProductoVenta = _context7.sent;
+            datosProductoVenta = _context8.sent;
             eliminados = [];
             nuevos = [];
             mismos = []; //identifica los que setan en ambos
@@ -566,7 +643,7 @@ var CompletarPedido2 = /*#__PURE__*/function () {
             console.log(Venta);
             console.log("--------------PEDIDO----------");
             console.log(Pedido);
-            return _context7.abrupt("return", new Promise(function (resolve, reject) {
+            return _context8.abrupt("return", new Promise(function (resolve, reject) {
               (0, _databaseMysql.getConnectionMysql2)().getConnection(function (err, connection) {
                 if (err) {
                   console.log("🚀 ~ file: pedido.controller.js:326 ~ getConnectionMysql2 ~ err:", err);
@@ -673,26 +750,26 @@ var CompletarPedido2 = /*#__PURE__*/function () {
 
           case 30:
           case "end":
-            return _context7.stop();
+            return _context8.stop();
         }
       }
-    }, _callee7);
+    }, _callee8);
   }));
 
-  return function CompletarPedido2(_x13, _x14) {
-    return _ref7.apply(this, arguments);
+  return function CompletarPedido2(_x15, _x16) {
+    return _ref8.apply(this, arguments);
   };
 }();
 
 var CompletarPedidoRapido = /*#__PURE__*/function () {
-  var _ref8 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8(req, res) {
+  var _ref9 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9(req, res) {
     var id_venta;
-    return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+    return _regeneratorRuntime().wrap(function _callee9$(_context9) {
       while (1) {
-        switch (_context8.prev = _context8.next) {
+        switch (_context9.prev = _context9.next) {
           case 0:
             id_venta = req.body.id_venta;
-            return _context8.abrupt("return", new Promise(function (resolve, reject) {
+            return _context9.abrupt("return", new Promise(function (resolve, reject) {
               (0, _databaseMysql.getConnectionMysql2)().getConnection(function (err, connection) {
                 if (err) {
                   console.log("🚀 ~ file: pedido.controller.js:530 ~ getConnectionMysql2 ~ err:", err);
@@ -756,14 +833,14 @@ var CompletarPedidoRapido = /*#__PURE__*/function () {
 
           case 2:
           case "end":
-            return _context8.stop();
+            return _context9.stop();
         }
       }
-    }, _callee8);
+    }, _callee9);
   }));
 
-  return function CompletarPedidoRapido(_x15, _x16) {
-    return _ref8.apply(this, arguments);
+  return function CompletarPedidoRapido(_x17, _x18) {
+    return _ref9.apply(this, arguments);
   };
 }();
 

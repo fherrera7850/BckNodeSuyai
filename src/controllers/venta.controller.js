@@ -56,16 +56,11 @@ const getVenta = async (req, res) => {
         console.log("🚀 ~ file: venta.controller.js:92 ~ getVenta ~ req.body", req.body)
         const connection = await getConnection();
 
-        let qry = 'SELECT pv._id , v._id _idv, ped._id _idp, p._id id_producto, v.PrecioTotalVenta, v.Dcto, v.MedioPago, c._id Cliente_id, p.Nombre, pv.Cantidad, p.Precio Precio, pv.PrecioVentaProducto PrecioVenta, p.Costo, p.Descripcion, p.CategoriaProducto_id, p.Imagen, (select count(Producto_id) from productoventa) as Ventas, DATE_FORMAT(DATE_SUB(v.Fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") Fecha '
-        qry += 'from venta v left join cliente c on v.Cliente_id=c._id '
-        qry += 'left join productoventa pv on pv.Venta_id=v._id '
-        qry += 'inner join producto p on p._id=pv.Producto_id '
-        qry += 'left join pedido ped on v._id=ped.Venta_id '
-        qry += `WHERE v._id = ${_id};`
+        let qry = `CALL Sel_DetalleVentaProductos(${_id});`
 
         const resultVenta = await connection.query(qry);
 
-        res.json(resultVenta);
+        res.json(resultVenta[0]);
 
     } catch (error) {
         console.error(error)

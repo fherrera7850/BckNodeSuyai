@@ -13,7 +13,7 @@ const getPedidos = async (req, res) => {
 
             resultFechas.forEach(element => element.Pedidos = [])
 
-            let qryAgrupados = 'SELECT ped._id Pedido_id, c._id Cliente_id, v._id Venta_id, c.Nombre, ped.Direccion, ped.Telefono, ped.FechaEntrega, ped.Estado, ped.Nota '
+            let qryAgrupados = 'SELECT ped._id Pedido_id, c._id Cliente_id, v._id Venta_id, c.Nombre, ped.Direccion, ped.Telefono, ped.FechaEntrega, ped.Estado, ped.Nota, v.PrecioTotalVenta '
             qryAgrupados += 'FROM pedido ped '
             qryAgrupados += 'LEFT JOIN venta v on v._id=ped.Venta_id '
             qryAgrupados += 'LEFT JOIN cliente c on c._id=v.Cliente_id ORDER BY 1;'
@@ -109,8 +109,55 @@ const getPedido = async (req, res) => {
 };
 
 const deletePedido = async (req, res) => {
-};
-
+    try {
+      const { id_pedido } = req.body;
+      console.log("🚀 id_pedido", id_pedido);
+      const connection = await getConnection();
+  
+      // Llamamos al procedimiento almacenado con un valor para PedidoID
+      const callProcedureQuery = `CALL Del_Pedido(${id_pedido}, @Estado);`;
+  
+      // Ejecutamos la llamada al procedimiento
+      connection.query(callProcedureQuery, async (err, results) => {
+        if (err) {
+          console.error(err);
+          res.status(500);
+          res.send(err.toString());
+          return;
+        }
+  
+        // Luego, ejecutamos una consulta adicional para obtener el valor de @Estado
+        const selectEstadoQuery = `SELECT @Estado AS Estado;`;
+  
+        // Ejecutamos la consulta para obtener el valor de @Estado
+        connection.query(selectEstadoQuery, (err, results) => {
+          if (err) {
+            console.error(err);
+            res.status(500);
+            res.send(err.toString());
+            return;
+          }
+  
+          const estado = results[0].Estado;
+  
+          if (estado === 0) {
+            // Ocurrió un error en el procedimiento almacenado
+            res.status(500);
+            res.send("Error: El procedimiento almacenado no pudo eliminar el registro.");
+          } else {
+            res.status(200);
+            // Aquí puedes enviar una respuesta exitosa si lo deseas
+            res.send("Registro eliminado correctamente.");
+          }
+        });
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500);
+      res.send(error.toString());
+    }
+  };
+  
 const CompletarPedido = async (req, res) => { //DEPRECADO, USAR 2
 
     const { Venta, ProductosVenta, Pedido } = req.body

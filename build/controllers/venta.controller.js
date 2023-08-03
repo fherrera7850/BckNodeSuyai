@@ -140,34 +140,29 @@ var getVenta = /*#__PURE__*/function () {
 
           case 5:
             connection = _context2.sent;
-            qry = 'SELECT pv._id , v._id _idv, ped._id _idp, p._id id_producto, v.PrecioTotalVenta, v.Dcto, v.MedioPago, c._id Cliente_id, p.Nombre, pv.Cantidad, p.Precio Precio, pv.PrecioVentaProducto PrecioVenta, p.Costo, p.Descripcion, p.CategoriaProducto_id, p.Imagen, (select count(Producto_id) from productoventa) as Ventas, DATE_FORMAT(DATE_SUB(v.Fecha, INTERVAL 3 HOUR), "%Y-%m-%dT%H:%i:%s") Fecha ';
-            qry += 'from venta v left join cliente c on v.Cliente_id=c._id ';
-            qry += 'left join productoventa pv on pv.Venta_id=v._id ';
-            qry += 'inner join producto p on p._id=pv.Producto_id ';
-            qry += 'left join pedido ped on v._id=ped.Venta_id ';
-            qry += "WHERE v._id = ".concat(_id, ";");
-            _context2.next = 14;
+            qry = "CALL Sel_DetalleVentaProductos(".concat(_id, ");");
+            _context2.next = 9;
             return connection.query(qry);
 
-          case 14:
+          case 9:
             resultVenta = _context2.sent;
-            res.json(resultVenta);
-            _context2.next = 23;
+            res.json(resultVenta[0]);
+            _context2.next = 18;
             break;
 
-          case 18:
-            _context2.prev = 18;
+          case 13:
+            _context2.prev = 13;
             _context2.t0 = _context2["catch"](0);
             console.error(_context2.t0);
             res.status(500);
             res.send(_context2.t0.toString());
 
-          case 23:
+          case 18:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, null, [[0, 18]]);
+    }, _callee2, null, [[0, 13]]);
   }));
 
   return function getVenta(_x3, _x4) {
