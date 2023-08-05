@@ -1,5 +1,7 @@
 import { getConnection } from "../database/database";
 import { getConnectionMysql2 } from "../database/databaseMysql2"
+import moment from 'moment';
+
 
 const getPedidos = async (req, res) => {
     try {
@@ -33,9 +35,11 @@ const getPedidos = async (req, res) => {
                 const resultDetalleProductos = await connection.query(qryDetalleProductos);
 
                 resultFechas.forEach(grandparent => {
+                    grandparent.FechaEntrega = moment(grandparent.FechaEntrega).format('YYYY-MM-DD');
                     resultAgrupados.forEach(parent => {
                         //console.log("grandparent.FechaEntrega", grandparent.FechaEntrega)
                         //console.log("parent.FechaEntrega", parent.FechaEntrega)
+                        parent.FechaEntrega = moment(parent.FechaEntrega).format('YYYY-MM-DD');
                         if (grandparent.FechaEntrega.toString() === parent.FechaEntrega.toString()) {
                             grandparent.Pedidos.push(parent)
                             resultDetalleProductos.forEach(child => {
