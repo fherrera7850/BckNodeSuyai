@@ -49,7 +49,7 @@ var getPedidos = /*#__PURE__*/function () {
             resultFechas.forEach(function (element) {
               return element.Pedidos = [];
             });
-            qryAgrupados = 'SELECT ped._id Pedido_id, c._id Cliente_id, v._id Venta_id, c.Nombre, ped.Direccion, ped.Telefono, ped.FechaEntrega, ped.Estado, ped.Nota, v.PrecioTotalVenta ';
+            qryAgrupados = 'SELECT ped._id Pedido_id, c._id Cliente_id, v._id Venta_id, c.Nombre, ped.Direccion, ped.Telefono, ped.FechaEntrega, ped.Estado, ped.Nota, v.PrecioTotalVenta, v.MedioPago ';
             qryAgrupados += 'FROM pedido ped ';
             qryAgrupados += 'LEFT JOIN venta v on v._id=ped.Venta_id ';
             qryAgrupados += 'LEFT JOIN cliente c on c._id=v.Cliente_id ORDER BY 1;';
@@ -770,12 +770,13 @@ var CompletarPedido2 = /*#__PURE__*/function () {
 
 var CompletarPedidoRapido = /*#__PURE__*/function () {
   var _ref9 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9(req, res) {
-    var id_venta;
+    var _req$body3, id_venta, pagada, medio_pago;
+
     return _regeneratorRuntime().wrap(function _callee9$(_context9) {
       while (1) {
         switch (_context9.prev = _context9.next) {
           case 0:
-            id_venta = req.body.id_venta;
+            _req$body3 = req.body, id_venta = _req$body3.id_venta, pagada = _req$body3.pagada, medio_pago = _req$body3.medio_pago;
             return _context9.abrupt("return", new Promise(function (resolve, reject) {
               (0, _databaseMysql.getConnectionMysql2)().getConnection(function (err, connection) {
                 if (err) {
@@ -808,9 +809,12 @@ var CompletarPedidoRapido = /*#__PURE__*/function () {
 
                     var QryVenta = "UPDATE venta ";
                     QryVenta += "SET ";
-                    QryVenta += "FECHA = UTC_DATE ";
+                    QryVenta += "FECHA = UTC_TIMESTAMP(), ";
+                    QryVenta += "MEDIOPAGO = ".concat(medio_pago, ", ");
+                    QryVenta += "PAGADA = ".concat(pagada ? "'S'" : "'N'", " ");
                     QryVenta += "WHERE ";
                     QryVenta += "_ID = ".concat(id_venta, "; ");
+                    console.log("🚀 ~ file: pedido.controller.js:613 ~ connection.execute ~ QryVenta:", QryVenta);
                     connection.execute(QryVenta, function (err) {
                       if (err) {
                         return connection.rollback(function () {
