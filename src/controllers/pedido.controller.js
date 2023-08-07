@@ -514,11 +514,15 @@ const CompletarPedido2 = async (req, res) => {
                 QryPedido += Pedido.Direccion ? `DIRECCION = '${Pedido.Direccion}' , ` : `DIRECCION = null, `
                 QryPedido += Pedido.Telefono ? `TELEFONO = '${Pedido.Telefono}' , ` : `TELEFONO = null, `
                 QryPedido += `FECHAENTREGA = '${Pedido.FechaEntrega}', `
-                QryPedido += Pedido.Nota ? `NOTA = '${Pedido.Nota}', ` : `NOTA = null, `
-                QryPedido += `ESTADO = 'C' `
+                QryPedido += Pedido.Nota ? `NOTA = '${Pedido.Nota}' ` : `NOTA = null `
+                //Actualiza sólo cuando se completa la venta
+                if (!Pedido.GuardarCambios) {
+                    QryPedido += `,ESTADO = 'C' `
+                }
                 QryPedido += `WHERE `
                 QryPedido += `VENTA_ID = ${Pedido.Venta_id};`
 
+                console.log("🚀 ~ file: pedido.controller.js:524 ~ getConnectionMysql2 ~ QryPedido:", QryPedido)
                 return connection.execute(
                     QryPedido, (err) => {
                         if (err) {
@@ -533,7 +537,10 @@ const CompletarPedido2 = async (req, res) => {
                         QryVenta += `MEDIOPAGO = ${Venta.MedioPago} , `
                         QryVenta += `PRECIOTOTALVENTA = ${Venta.PrecioTotalVenta} , `
                         QryVenta += Venta.Cliente_id ? `CLIENTE_ID = ${Venta.Cliente_id} , ` : `CLIENTE_ID = null, `
-                        QryVenta += `FECHA = '${Venta.Fecha}' , `
+                        //Actualiza sólo cuando se completa la venta
+                        if (!Pedido.GuardarCambios) {
+                            QryVenta += `FECHA = '${Venta.Fecha}' , `
+                        }
                         QryVenta += `DCTO = ${Venta.Dcto} , `
                         QryVenta += Venta.Observacion ? `OBSERVACION = '${Venta.Observacion}' ` : `OBSERVACION = null `
                         QryVenta += `WHERE `

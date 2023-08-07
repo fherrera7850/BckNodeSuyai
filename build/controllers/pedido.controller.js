@@ -707,10 +707,15 @@ var CompletarPedido2 = /*#__PURE__*/function () {
                   QryPedido += Pedido.Direccion ? "DIRECCION = '".concat(Pedido.Direccion, "' , ") : "DIRECCION = null, ";
                   QryPedido += Pedido.Telefono ? "TELEFONO = '".concat(Pedido.Telefono, "' , ") : "TELEFONO = null, ";
                   QryPedido += "FECHAENTREGA = '".concat(Pedido.FechaEntrega, "', ");
-                  QryPedido += Pedido.Nota ? "NOTA = '".concat(Pedido.Nota, "', ") : "NOTA = null, ";
-                  QryPedido += "ESTADO = 'C' ";
+                  QryPedido += Pedido.Nota ? "NOTA = '".concat(Pedido.Nota, "' ") : "NOTA = null "; //Actualiza sólo cuando se completa la venta
+
+                  if (!Pedido.GuardarCambios) {
+                    QryPedido += ",ESTADO = 'C' ";
+                  }
+
                   QryPedido += "WHERE ";
                   QryPedido += "VENTA_ID = ".concat(Pedido.Venta_id, ";");
+                  console.log("🚀 ~ file: pedido.controller.js:524 ~ getConnectionMysql2 ~ QryPedido:", QryPedido);
                   return connection.execute(QryPedido, function (err) {
                     if (err) {
                       return connection.rollback(function () {
@@ -723,8 +728,12 @@ var CompletarPedido2 = /*#__PURE__*/function () {
                     QryVenta += "SET ";
                     QryVenta += "MEDIOPAGO = ".concat(Venta.MedioPago, " , ");
                     QryVenta += "PRECIOTOTALVENTA = ".concat(Venta.PrecioTotalVenta, " , ");
-                    QryVenta += Venta.Cliente_id ? "CLIENTE_ID = ".concat(Venta.Cliente_id, " , ") : "CLIENTE_ID = null, ";
-                    QryVenta += "FECHA = '".concat(Venta.Fecha, "' , ");
+                    QryVenta += Venta.Cliente_id ? "CLIENTE_ID = ".concat(Venta.Cliente_id, " , ") : "CLIENTE_ID = null, "; //Actualiza sólo cuando se completa la venta
+
+                    if (!Pedido.GuardarCambios) {
+                      QryVenta += "FECHA = '".concat(Venta.Fecha, "' , ");
+                    }
+
                     QryVenta += "DCTO = ".concat(Venta.Dcto, " , ");
                     QryVenta += Venta.Observacion ? "OBSERVACION = '".concat(Venta.Observacion, "' ") : "OBSERVACION = null ";
                     QryVenta += "WHERE ";

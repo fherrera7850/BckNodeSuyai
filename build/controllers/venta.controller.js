@@ -74,49 +74,54 @@ var addVenta = /*#__PURE__*/function () {
             console.log("🚀 ~ file: venta.controller.js:34 ~ addVenta ~ Pedido", Pedido);
 
             if (!Pedido) {
-              _context.next = 33;
+              _context.next = 34;
               break;
             }
 
             Pedido.Venta_id = idVenta;
-            console.log("🚀 --------HACE INSERT DE PEDIDO-------");
-            _context.next = 33;
+            console.log("🚀 --------HACE INSERT DE PEDIDO-------"); //quita campo GuardarCambios del json
+
+            if (Pedido.hasOwnProperty('GuardarCambios')) {
+              delete Pedido.GuardarCambios;
+            }
+
+            _context.next = 34;
             return connection.query("INSERT INTO pedido SET ?", Pedido);
 
-          case 33:
-            _context.next = 35;
+          case 34:
+            _context.next = 36;
             return connection.query("COMMIT;");
 
-          case 35:
+          case 36:
             console.log("commit");
             res.sendStatus(200);
-            _context.next = 45;
+            _context.next = 46;
             break;
 
-          case 39:
-            _context.prev = 39;
+          case 40:
+            _context.prev = 40;
             _context.t2 = _context["catch"](10);
-            _context.next = 43;
+            _context.next = 44;
             return connection.query("ROLLBACK;");
 
-          case 43:
+          case 44:
             console.log("🚀rollback", _context.t2);
             res.sendStatus(500);
 
-          case 45:
-            _context.prev = 45;
-            _context.next = 48;
+          case 46:
+            _context.prev = 46;
+            _context.next = 49;
             return connection.query("COMMIT;");
 
-          case 48:
-            return _context.finish(45);
-
           case 49:
+            return _context.finish(46);
+
+          case 50:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[10, 39, 45, 49]]);
+    }, _callee, null, [[10, 40, 46, 50]]);
   }));
 
   return function addVenta(_x, _x2) {

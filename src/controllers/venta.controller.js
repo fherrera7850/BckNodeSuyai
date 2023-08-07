@@ -35,6 +35,10 @@ const addVenta = async (req, res) => {
         if (Pedido) {
             Pedido.Venta_id = idVenta
             console.log("🚀 --------HACE INSERT DE PEDIDO-------")
+            //quita campo GuardarCambios del json
+            if (Pedido.hasOwnProperty('GuardarCambios')) {
+                delete Pedido.GuardarCambios;
+            }
             await connection.query("INSERT INTO pedido SET ?", Pedido)
         }
 
@@ -171,7 +175,7 @@ const getEstadisticas = async (req, res) => {
         }
 
         res.json(ObjEstadisticas);
-        
+
 
     } catch (error) {
         res.status(500);
