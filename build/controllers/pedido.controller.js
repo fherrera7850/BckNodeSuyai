@@ -864,12 +864,89 @@ var CompletarPedidoRapido = /*#__PURE__*/function () {
   };
 }();
 
+var getResumenDiario = /*#__PURE__*/function () {
+  var _ref10 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10(req, res) {
+    var connection, qryEncabezado, qryDetalle, objResumen, resultEncabezado, resultEncabezadoFR, resultDetalle, resultDetalleFR;
+    return _regeneratorRuntime().wrap(function _callee10$(_context10) {
+      while (1) {
+        switch (_context10.prev = _context10.next) {
+          case 0:
+            _context10.prev = 0;
+            _context10.next = 3;
+            return (0, _database.getConnection)();
+
+          case 3:
+            connection = _context10.sent;
+            qryEncabezado = 'call Sel_ResumenDiarioPedidosEncabezado();';
+            qryDetalle = 'call Sel_ResumenDiarioPedidosDetalle();';
+            objResumen = {};
+            _context10.next = 9;
+            return connection.query(qryEncabezado);
+
+          case 9:
+            resultEncabezado = _context10.sent;
+            resultEncabezadoFR = resultEncabezado[0];
+
+            if (!(resultEncabezadoFR[0].MontoTotal !== null)) {
+              _context10.next = 21;
+              break;
+            }
+
+            _context10.next = 14;
+            return connection.query(qryDetalle);
+
+          case 14:
+            resultDetalle = _context10.sent;
+            resultDetalleFR = resultDetalle[0];
+            objResumen = {
+              CantidadPedidos: resultEncabezadoFR[0].CantidadPedidos,
+              MontoTotal: resultEncabezadoFR[0].MontoTotal,
+              Productos: resultDetalleFR,
+              CantidadPorEntregar: resultEncabezadoFR[0].CantidadPorEntregar,
+              CantidadEntregada: resultEncabezadoFR[0].CantidadEntregada
+            };
+            res.json(objResumen);
+            res.status(200);
+            _context10.next = 23;
+            break;
+
+          case 21:
+            res.status(204);
+            res.json({
+              ErrorMessage: "No hay pedidos para hoy :("
+            });
+
+          case 23:
+            _context10.next = 30;
+            break;
+
+          case 25:
+            _context10.prev = 25;
+            _context10.t0 = _context10["catch"](0);
+            console.error(_context10.t0);
+            res.status(500);
+            res.send(_context10.t0.toString());
+
+          case 30:
+          case "end":
+            return _context10.stop();
+        }
+      }
+    }, _callee10, null, [[0, 25]]);
+  }));
+
+  return function getResumenDiario(_x19, _x20) {
+    return _ref10.apply(this, arguments);
+  };
+}();
+
 var methods = {
   getPedidos: getPedidos,
   deletePedido: deletePedido,
   getPedido: getPedido,
   CompletarPedido: CompletarPedido,
   CompletarPedido2: CompletarPedido2,
-  CompletarPedidoRapido: CompletarPedidoRapido
+  CompletarPedidoRapido: CompletarPedidoRapido,
+  getResumenDiario: getResumenDiario
 };
 exports.methods = methods;

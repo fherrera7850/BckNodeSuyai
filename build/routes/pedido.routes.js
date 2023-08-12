@@ -11,6 +11,7 @@ var _pedido = require("../controllers/pedido.controller");
 
 var router = (0, _express.Router)();
 router.get("/", _pedido.methods.getPedidos);
+router.get("/ResumenDiario", _pedido.methods.getResumenDiario);
 router.get("/:_id", _pedido.methods.getPedido);
 router.post("/CompletarPedido", _pedido.methods.CompletarPedido);
 router.post("/CompletarPedido2", _pedido.methods.CompletarPedido2);

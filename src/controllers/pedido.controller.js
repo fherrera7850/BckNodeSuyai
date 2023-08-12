@@ -654,11 +654,52 @@ const CompletarPedidoRapido = async (req, res) => {
 
 }
 
+const getResumenDiario = async (req, res) => {
+    try {
+        const connection = await getConnection();
+
+        let qryEncabezado = 'call Sel_ResumenDiarioPedidosEncabezado();';
+        let qryDetalle = 'call Sel_ResumenDiarioPedidosDetalle();';
+
+        let objResumen = {};
+
+        const resultEncabezado = await connection.query(qryEncabezado);
+        const resultEncabezadoFR = resultEncabezado[0];
+
+
+        if (resultEncabezadoFR[0].MontoTotal !== null) {
+
+            const resultDetalle = await connection.query(qryDetalle);
+            const resultDetalleFR = resultDetalle[0];
+
+            objResumen = {
+                CantidadPedidos: resultEncabezadoFR[0].CantidadPedidos,
+                MontoTotal: resultEncabezadoFR[0].MontoTotal,
+                Productos: resultDetalleFR,
+                CantidadPorEntregar: resultEncabezadoFR[0].CantidadPorEntregar,
+                CantidadEntregada: resultEncabezadoFR[0].CantidadEntregada
+            };
+
+            res.json(objResumen);
+            res.status(200);
+        }
+        else {
+            res.status(204);
+            res.json({ ErrorMessage: "No hay pedidos para hoy :(" })
+        }
+    } catch (error) {
+        console.error(error)
+        res.status(500);
+        res.send(error.toString());
+    }
+};
+
 export const methods = {
     getPedidos,
     deletePedido,
     getPedido,
     CompletarPedido,
     CompletarPedido2,
-    CompletarPedidoRapido
+    CompletarPedidoRapido,
+    getResumenDiario
 };
