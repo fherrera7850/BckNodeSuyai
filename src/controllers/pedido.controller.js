@@ -675,9 +675,9 @@ const getResumenDiario = async (req, res) => {
             objResumen = {
                 CantidadPedidos: resultEncabezadoFR[0].CantidadPedidos,
                 MontoTotal: resultEncabezadoFR[0].MontoTotal,
-                Productos: resultDetalleFR,
                 CantidadPorEntregar: resultEncabezadoFR[0].CantidadPorEntregar,
-                CantidadEntregada: resultEncabezadoFR[0].CantidadEntregada
+                CantidadEntregada: resultEncabezadoFR[0].CantidadEntregada,
+                Productos: resultDetalleFR
             };
 
             res.json(objResumen);
