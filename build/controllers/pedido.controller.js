@@ -49,7 +49,7 @@ var getPedidos = /*#__PURE__*/function () {
             resultFechas.forEach(function (element) {
               return element.Pedidos = [];
             });
-            qryAgrupados = 'SELECT ped._id Pedido_id, c._id Cliente_id, v._id Venta_id, c.Nombre, ped.Direccion, ped.Telefono, ped.FechaEntrega, ped.Estado, ped.Nota, v.PrecioTotalVenta, v.MedioPago ';
+            qryAgrupados = 'SELECT ped._id Pedido_id, c._id Cliente_id, v._id Venta_id, c.Nombre, ped.Direccion, ped.Telefono, ped.FechaEntrega, ped.Estado, ped.Nota, v.PrecioTotalVenta, v.MedioPago, v.Pagada ';
             qryAgrupados += 'FROM pedido ped ';
             qryAgrupados += 'LEFT JOIN venta v on v._id=ped.Venta_id ';
             qryAgrupados += 'LEFT JOIN cliente c on c._id=v.Cliente_id ORDER BY 1;';
@@ -940,6 +940,102 @@ var getResumenDiario = /*#__PURE__*/function () {
   };
 }();
 
+var actualizaVentaPagada = /*#__PURE__*/function () {
+  var _ref11 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12(req, res) {
+    var _req$body4, id_pedido, pagada, connection, callProcedureQuery;
+
+    return _regeneratorRuntime().wrap(function _callee12$(_context12) {
+      while (1) {
+        switch (_context12.prev = _context12.next) {
+          case 0:
+            _context12.prev = 0;
+            _req$body4 = req.body, id_pedido = _req$body4.id_pedido, pagada = _req$body4.pagada;
+            console.log("🚀 id_pedido, pagada", id_pedido, pagada);
+            _context12.next = 5;
+            return (0, _database.getConnection)();
+
+          case 5:
+            connection = _context12.sent;
+            // Llamamos al procedimiento almacenado con un valor para PedidoID
+            callProcedureQuery = "CALL Upd_Venta_Pagada(".concat(id_pedido, ", '").concat(pagada, "', @Estado);"); // Ejecutamos la llamada al procedimiento
+
+            connection.query(callProcedureQuery, /*#__PURE__*/function () {
+              var _ref12 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11(err, results) {
+                var selectEstadoQuery;
+                return _regeneratorRuntime().wrap(function _callee11$(_context11) {
+                  while (1) {
+                    switch (_context11.prev = _context11.next) {
+                      case 0:
+                        if (!err) {
+                          _context11.next = 5;
+                          break;
+                        }
+
+                        console.error(err);
+                        res.status(500);
+                        res.send(err.toString());
+                        return _context11.abrupt("return");
+
+                      case 5:
+                        // Luego, ejecutamos una consulta adicional para obtener el valor de @Estado
+                        selectEstadoQuery = "SELECT @Estado AS Estado;"; // Ejecutamos la consulta para obtener el valor de @Estado
+
+                        connection.query(selectEstadoQuery, function (err, results) {
+                          if (err) {
+                            console.error(err);
+                            res.status(500);
+                            res.send(err.toString());
+                            return;
+                          }
+
+                          var estado = results[0].Estado;
+
+                          if (estado === 0) {
+                            // Ocurrió un error en el procedimiento almacenado
+                            res.status(500);
+                            res.send("Error: El procedimiento almacenado no pudo actualizar el registro.");
+                          } else {
+                            res.status(200); // Aquí puedes enviar una respuesta exitosa si lo deseas
+
+                            res.send("Registro actualizado correctamente.");
+                          }
+                        });
+
+                      case 7:
+                      case "end":
+                        return _context11.stop();
+                    }
+                  }
+                }, _callee11);
+              }));
+
+              return function (_x23, _x24) {
+                return _ref12.apply(this, arguments);
+              };
+            }());
+            _context12.next = 15;
+            break;
+
+          case 10:
+            _context12.prev = 10;
+            _context12.t0 = _context12["catch"](0);
+            console.error(_context12.t0);
+            res.status(500);
+            res.send(_context12.t0.toString());
+
+          case 15:
+          case "end":
+            return _context12.stop();
+        }
+      }
+    }, _callee12, null, [[0, 10]]);
+  }));
+
+  return function actualizaVentaPagada(_x21, _x22) {
+    return _ref11.apply(this, arguments);
+  };
+}();
+
 var methods = {
   getPedidos: getPedidos,
   deletePedido: deletePedido,
@@ -947,6 +1043,7 @@ var methods = {
   CompletarPedido: CompletarPedido,
   CompletarPedido2: CompletarPedido2,
   CompletarPedidoRapido: CompletarPedidoRapido,
-  getResumenDiario: getResumenDiario
+  getResumenDiario: getResumenDiario,
+  actualizaVentaPagada: actualizaVentaPagada
 };
 exports.methods = methods;

@@ -17,5 +17,6 @@ router.post("/CompletarPedido", _pedido.methods.CompletarPedido);
 router.post("/CompletarPedido2", _pedido.methods.CompletarPedido2);
 router.post("/CompletarPedidoRapido", _pedido.methods.CompletarPedidoRapido);
 router["delete"]("/EliminarPedido", _pedido.methods.deletePedido);
+router.post("/ActualizaPedidoPagado", _pedido.methods.actualizaVentaPagada);
 var _default = router;
 exports["default"] = _default;

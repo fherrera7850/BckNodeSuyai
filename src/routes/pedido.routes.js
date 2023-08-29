@@ -10,6 +10,5 @@ router.post("/CompletarPedido", pedidoController.CompletarPedido);
 router.post("/CompletarPedido2", pedidoController.CompletarPedido2);
 router.post("/CompletarPedidoRapido", pedidoController.CompletarPedidoRapido);
 router.delete("/EliminarPedido", pedidoController.deletePedido)
-
-
+router.post("/ActualizaPedidoPagado", pedidoController.actualizaVentaPagada)
 export default router;
