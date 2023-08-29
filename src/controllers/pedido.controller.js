@@ -685,7 +685,7 @@ const getResumenDiario = async (req, res) => {
         }
         else {
             res.status(204);
-            res.json({ ErrorMessage: "No hay pedidos para hoy :(" })
+            res.json({ ErrorMessage: "No hay pedidos para hoy" })
         }
     } catch (error) {
         console.error(error)

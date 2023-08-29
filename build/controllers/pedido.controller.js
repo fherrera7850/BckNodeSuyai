@@ -913,7 +913,7 @@ var getResumenDiario = /*#__PURE__*/function () {
           case 21:
             res.status(204);
             res.json({
-              ErrorMessage: "No hay pedidos para hoy :("
+              ErrorMessage: "No hay pedidos para hoy"
             });
 
           case 23:
