@@ -7,7 +7,7 @@ const getPedidos = async (req, res) => {
     try {
         const connection = await getConnection();
 
-        let qryFechas = 'SELECT DISTINCT FechaEntrega FROM pedido order by 1'
+        let qryFechas = 'SELECT DISTINCT FechaEntrega FROM pedido WHERE FechaEntrega >= CURDATE() - INTERVAL 60 DAY order by 1'
         const resultFechas = await connection.query(qryFechas);
 
 
