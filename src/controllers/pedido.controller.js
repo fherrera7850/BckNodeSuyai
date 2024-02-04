@@ -18,7 +18,7 @@ const getPedidos = async (req, res) => {
             let qryAgrupados = 'SELECT ped._id Pedido_id, c._id Cliente_id, v._id Venta_id, c.Nombre, ped.Direccion, ped.Telefono, ped.FechaEntrega, ped.Estado, ped.Nota, v.PrecioTotalVenta, v.MedioPago, v.Pagada '
             qryAgrupados += 'FROM pedido ped '
             qryAgrupados += 'LEFT JOIN venta v on v._id=ped.Venta_id '
-            qryAgrupados += 'LEFT JOIN cliente c on c._id=v.Cliente_id ORDER BY 1;'
+            qryAgrupados += 'LEFT JOIN cliente c on c._id=v.Cliente_id WHERE ped.FechaEntrega >= CURDATE() - INTERVAL 60 DAY ORDER BY 1;'
 
             const resultAgrupados = await connection.query(qryAgrupados);
 
@@ -30,7 +30,7 @@ const getPedidos = async (req, res) => {
                 qryDetalleProductos += 'FROM venta v '
                 qryDetalleProductos += 'RIGHT JOIN pedido ped on ped.Venta_id=v._id '
                 qryDetalleProductos += 'INNER JOIN productoventa pv on v._id=pv.Venta_id '
-                qryDetalleProductos += 'INNER JOIN producto p on p._id=pv.Producto_id ORDER BY 1;'
+                qryDetalleProductos += 'INNER JOIN producto p on p._id=pv.Producto_id WHERE ped.FechaEntrega >= CURDATE() - INTERVAL 60 DAY ORDER BY 1;'
 
                 const resultDetalleProductos = await connection.query(qryDetalleProductos);
 
