@@ -1,9 +1,9 @@
-import { getConnection } from "../database/database";
+import { getConnectionMysql2 } from "../database/databaseMysql2";
 
 const CompletaPedidoVenta = async (req, res) => {
 
     const { id_venta, id_pedido } = req.body
-    const connection = await getConnection();
+    const connection = await getConnectionMysql2();
 
     try {
         await connection.query('START TRANSACTION')

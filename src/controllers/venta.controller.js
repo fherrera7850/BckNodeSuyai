@@ -1,4 +1,4 @@
-import { getConnection } from "./../database/database";
+import { getConnection } from "./../database/mysql2promise";
 
 const addVenta = async (req, res) => {
 
@@ -16,7 +16,7 @@ const addVenta = async (req, res) => {
 
     try {
         await connection.query('START TRANSACTION')
-        const resVenta = await connection.query("INSERT INTO venta SET ?", Venta)
+        const [resVenta, fieldsVenta] = await connection.query("INSERT INTO venta SET ?", Venta)
         const idVenta = resVenta.insertId
         console.log("🚀 ~ file: venta.controller.js:19 ~ addVenta ~ idVenta", idVenta)
         for (const key in ProductosVenta) {
@@ -62,7 +62,7 @@ const getVenta = async (req, res) => {
 
         let qry = `CALL Sel_DetalleVentaProductos(${_id});`
 
-        const resultVenta = await connection.query(qry);
+        const [resultVenta, fieldsVenta] = await connection.query(qry);
 
         res.json(resultVenta[0]);
 
@@ -102,7 +102,7 @@ const getHistorial30Dias = async (req, res) => {
         qry += 'order by FechaVenta desc'
         console.log("🚀 ~ file: venta.controller.js ~ line 48 ~ getHistorial30Dias ~ qry", qry)
 
-        const resultAgrupados = await connection.query(qry);
+        const [resultAgrupados, fieldsAgrupados ] = await connection.query(qry);
 
         if (resultAgrupados.length > 0) {
             resultAgrupados.forEach(element => element.Ventas = [])
@@ -117,7 +117,7 @@ const getHistorial30Dias = async (req, res) => {
             qry2 += 'GROUP by v._id '
             qry2 += 'order by v.fecha desc; '
 
-            const resultVentas = await connection.query(qry2);
+            const [resultVentas, fieldsVentas] = await connection.query(qry2);
 
             //console.log(resultAgrupados[0], resultVentas[0])
 
@@ -156,15 +156,15 @@ const getEstadisticas = async (req, res) => {
         }
 
         let qryTotales = "CALL Sel_EstadisticasGenerales('" + req.params.FechaInicio + "', '" + req.params.FechaFin + "');";
-        const resultTotales = await connection.query(qryTotales);
+        const [resultTotales, fieldsResultTotales] = await connection.query(qryTotales);
         console.log("🚀 ~  resultTotales 1era query", resultTotales)
 
         let qryMediosDePago = "CALL Sel_EstadisticasMediosDePago('" + req.params.FechaInicio + "', '" + req.params.FechaFin + "');"
-        const resultMediosDePago = await connection.query(qryMediosDePago);
+        const [resultMediosDePago, fieldsResultMediosDePago] = await connection.query(qryMediosDePago);
         console.log("🚀 ~  resultMediosDePago 2da consulta", resultMediosDePago)
 
         let qryMasVendidos = "CALL Sel_EstadisticasProductosMasVendidos('" + req.params.FechaInicio + "', '" + req.params.FechaFin + "');"
-        const resultMasVendidos = await connection.query(qryMasVendidos);
+        const [resultMasVendidos, fieldsResultMasVendidos] = await connection.query(qryMasVendidos);
         console.log("🚀 ~ resultMasVendidos 3eraq comsultas", resultMasVendidos)
 
 
