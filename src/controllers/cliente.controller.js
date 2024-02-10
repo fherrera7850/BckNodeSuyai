@@ -1,4 +1,4 @@
-import { getConnection } from "./../database/database";
+import { getConnection } from "./../database/mysql2promise";
 
 const addCliente = async (req, res) => {
 
@@ -10,7 +10,7 @@ const addCliente = async (req, res) => {
 
     try {
         await connection.query('START TRANSACTION')
-        const response = await connection.query("INSERT INTO cliente SET ?", req.body)
+        await connection.query("INSERT INTO cliente SET ?", req.body)
         await connection.query("commit")
         console.log("commit")
         res.sendStatus(200);
@@ -25,8 +25,8 @@ const getClientes = async (req, res) => {
     try {
         const connection = await getConnection();
         let qry = "select _id,nombre,telefono,direccion,calle,comuna,email,observacion from cliente order by nombre"
-        const result = await connection.query(qry);
-        res.json(result);
+        const [results, fields] = await connection.query(qry);
+        res.json(results);
     } catch (error) {
         res.status(500);
         res.send(error.message);
@@ -38,8 +38,8 @@ const getCliente = async (req, res) => {
         const { _id } = req.params
         const connection = await getConnection();
         let qry = `select _id,nombre,telefono,direccion,calle,comuna,email,observacion from cliente where _id=${_id}`
-        const result = await connection.query(qry);
-        res.json(result);
+        const [results, fields] = await connection.query(qry);
+        res.json(results);
     } catch (error) {
         res.status(500);
         res.send(error.message);

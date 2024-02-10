@@ -1,4 +1,4 @@
-import { getConnection } from "../database/database";
+import { getConnection } from "./../database/mysql2promise";
 import { getConnectionMysql2 } from "../database/databaseMysql2"
 import moment from 'moment';
 
@@ -8,8 +8,8 @@ const getPedidos = async (req, res) => {
         const connection = await getConnection();
 
         let qryFechas = 'SELECT DISTINCT FechaEntrega FROM pedido WHERE FechaEntrega >= CURDATE() - INTERVAL 60 DAY order by 1'
-        const resultFechas = await connection.query(qryFechas);
-
+        const [results, fields] = await connection.query(qryFechas);
+        const resultFechas = results;
 
         if (resultFechas.length > 0) {
 
@@ -20,7 +20,8 @@ const getPedidos = async (req, res) => {
             qryAgrupados += 'LEFT JOIN venta v on v._id=ped.Venta_id '
             qryAgrupados += 'LEFT JOIN cliente c on c._id=v.Cliente_id WHERE ped.FechaEntrega >= CURDATE() - INTERVAL 60 DAY ORDER BY 1;'
 
-            const resultAgrupados = await connection.query(qryAgrupados);
+            const [results, fields] = await connection.query(qryAgrupados);
+            const resultAgrupados = results;
 
             if (resultAgrupados.length > 0) {
                 //Agrega array vacio para el detalle del pedido
@@ -32,7 +33,8 @@ const getPedidos = async (req, res) => {
                 qryDetalleProductos += 'INNER JOIN productoventa pv on v._id=pv.Venta_id '
                 qryDetalleProductos += 'INNER JOIN producto p on p._id=pv.Producto_id WHERE ped.FechaEntrega >= CURDATE() - INTERVAL 60 DAY ORDER BY 1;'
 
-                const resultDetalleProductos = await connection.query(qryDetalleProductos);
+                const [results, fields] = await connection.query(qryDetalleProductos);
+                const resultDetalleProductos = results;
 
                 resultFechas.forEach(grandparent => {
                     grandparent.FechaEntrega = moment(grandparent.FechaEntrega).format('YYYY-MM-DD');
@@ -78,7 +80,7 @@ const getPedido = async (req, res) => {
         qryAgrupados += 'LEFT JOIN cliente c on c._id=v.Cliente_id '
         qryAgrupados += 'WHERE ped._id = ' + _id + ';'
 
-        const resultAgrupados = await connection.query(qryAgrupados);
+        const [resultAgrupados, fieldsAgrupados] = await connection.query(qryAgrupados);
 
         //Agrega array vacio para el detalle del pedido
         resultAgrupados.forEach(element => element.Productos = [])
@@ -90,7 +92,7 @@ const getPedido = async (req, res) => {
         qryDetalleProductos += 'INNER JOIN producto p on p._id=pv.Producto_id '
         qryDetalleProductos += 'WHERE ped._id = ' + _id + ';'
 
-        const resultDetalleProductos = await connection.query(qryDetalleProductos);
+        const [resultDetalleProductos, fieldsDetalleProductos] = await connection.query(qryDetalleProductos);
 
         resultAgrupados.forEach(parent => {
             resultDetalleProductos.forEach(child => {
@@ -116,7 +118,7 @@ const deletePedido = async (req, res) => {
     try {
         const { id_pedido } = req.body;
         console.log("🚀 id_pedido", id_pedido);
-        const connection = await getConnection();
+        const connection = await getConnectionMysql2();
 
         // Llamamos al procedimiento almacenado con un valor para PedidoID
         const callProcedureQuery = `CALL Del_Pedido(${id_pedido}, @Estado);`;
@@ -365,7 +367,7 @@ const CompletarPedido2 = async (req, res) => {
     Venta.Fecha = fx
 
     const connection1 = await getConnection();
-    const datosProductoVenta = await connection1.query(`select * from productoventa where Venta_id = ${Pedido.Venta_id}`)
+    const [datosProductoVenta, fieldsProductoVenta] = await connection1.query(`select * from productoventa where Venta_id = ${Pedido.Venta_id}`)
 
     let eliminados = []
     let nuevos = []
@@ -663,13 +665,13 @@ const getResumenDiario = async (req, res) => {
 
         let objResumen = {};
 
-        const resultEncabezado = await connection.query(qryEncabezado);
+        const [resultEncabezado, fieldsEncabezado] = await connection.query(qryEncabezado);
         const resultEncabezadoFR = resultEncabezado[0];
 
 
         if (resultEncabezadoFR[0].MontoTotal !== null) {
 
-            const resultDetalle = await connection.query(qryDetalle);
+            const [resultDetalle, fieldsDetalle] = await connection.query(qryDetalle);
             const resultDetalleFR = resultDetalle[0];
 
             objResumen = {
@@ -698,7 +700,7 @@ const actualizaVentaPagada = async (req, res) => {
     try {
         const { id_pedido, pagada } = req.body;
         console.log("🚀 id_pedido, pagada", id_pedido, pagada);
-        const connection = await getConnection();
+        const connection = await getConnectionMysql2();
 
         // Llamamos al procedimiento almacenado con un valor para PedidoID
         const callProcedureQuery = `CALL Upd_Venta_Pagada(${id_pedido}, '${pagada}', @Estado);`;
