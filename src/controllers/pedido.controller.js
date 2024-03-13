@@ -541,7 +541,7 @@ const CompletarPedido2 = async (req, res) => {
                         QryVenta += Venta.Cliente_id ? `CLIENTE_ID = ${Venta.Cliente_id} , ` : `CLIENTE_ID = null, `
                         //Actualiza sólo cuando se completa la venta
                         if (!Pedido.GuardarCambios) {
-                            QryVenta += `FECHA = '${Venta.Fecha}' , `
+                            QryVenta += `FECHA = UTC_TIMESTAMP() , `
                         }
                         QryVenta += `DCTO = ${Venta.Dcto} , `
                         QryVenta += Venta.Observacion ? `OBSERVACION = '${Venta.Observacion}' ` : `OBSERVACION = null `

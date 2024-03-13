@@ -1,3 +1,4 @@
+import moment from "moment";
 import { getConnection } from "./../database/mysql2promise";
 
 const addVenta = async (req, res) => {
@@ -102,7 +103,7 @@ const getHistorial30Dias = async (req, res) => {
         qry += 'order by FechaVenta desc'
         console.log("🚀 ~ file: venta.controller.js ~ line 48 ~ getHistorial30Dias ~ qry", qry)
 
-        const [resultAgrupados, fieldsAgrupados ] = await connection.query(qry);
+        const [resultAgrupados, fieldsAgrupados] = await connection.query(qry);
 
         if (resultAgrupados.length > 0) {
             resultAgrupados.forEach(element => element.Ventas = [])
@@ -184,10 +185,40 @@ const getEstadisticas = async (req, res) => {
     }
 };
 
+const getBoletaDiaria = async (req, res) => {
+    try {
+        const { Fecha } = req.params
+        const connection = await getConnection();
+
+        const fechaFormateadaYYYYMMDD = moment(Fecha).format("YYYY-MM-DD");
+
+        let qry = `select
+        round((sum(v.PrecioTotalVenta) * 0.9)) as MontoBoleta
+        from venta v inner join pedido p on p.Venta_id=v._id 
+        where p.Estado = 'C' and DATE(CONVERT_TZ(v.Fecha, 'UTC', 'America/Buenos_Aires')) = '${fechaFormateadaYYYYMMDD}' and v.MedioPago <> 2;`
+
+        const [result, fields] = await connection.query(qry);
+        console.log("🚀 ~ getBoletaDiaria ~ result:", result)
+
+        const response = {
+            "Fecha": moment(Fecha).format("DD-MM-YYYY"),
+            "MontoBoleta": result[0].MontoBoleta
+        }
+
+        res.json(response);
+
+    } catch (error) {
+        console.error(error)
+        res.status(500);
+        res.send(error.toString());
+    }
+};
+
 export const methods = {
     addVenta,
     getHistorial30Dias,
     getEstadisticas,
     getVenta,
-    deleteVenta
+    deleteVenta,
+    getBoletaDiaria
 };
