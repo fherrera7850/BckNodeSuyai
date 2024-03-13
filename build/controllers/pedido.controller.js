@@ -765,7 +765,7 @@ var CompletarPedido2 = /*#__PURE__*/function () {
                     QryVenta += Venta.Cliente_id ? "CLIENTE_ID = ".concat(Venta.Cliente_id, " , ") : "CLIENTE_ID = null, "; //Actualiza sólo cuando se completa la venta
 
                     if (!Pedido.GuardarCambios) {
-                      QryVenta += "FECHA = UTC_TIMESTAMP() , ";
+                      QryVenta += "FECHA = '".concat(Venta.Fecha, "' , ");
                     }
 
                     QryVenta += "DCTO = ".concat(Venta.Dcto, " , ");

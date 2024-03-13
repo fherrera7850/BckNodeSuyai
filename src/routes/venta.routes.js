@@ -9,7 +9,7 @@ router.get("/Historial", ventaController.getHistorial30Dias);
 router.get("/Estadisticas/:FechaInicio/:FechaFin", ventaController.getEstadisticas);
 router.get("/:_id", ventaController.getVenta);
 router.delete("/:_id", ventaController.deleteVenta)
-router.get("/BoletaDiaria/:Fecha", ventaController.getBoletaDiaria)
+//router.get("/BoletaDiaria/:Fecha", ventaController.getBoletaDiaria)
 
 
 export default router;
