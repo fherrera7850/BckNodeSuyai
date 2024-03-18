@@ -9,10 +9,15 @@ const parameters = {
     connectionLimit: 10,
     multipleStatements: true
 }
-console.log("🚀 ~ file: databaseMysql2.js:12 ~ parameters:", parameters)
-const connection = mysql.createPool(parameters);
+//console.log("🚀 ~ file: databaseMysql2.js:12 ~ parameters:", parameters)
+
 const getConnectionMysql2 = () => {
-    return connection;
+    try {
+        const connection = mysql.createPool(parameters);
+        return connection;
+    } catch (error) {
+        console.log(error);
+    }
 };
 
 module.exports = {

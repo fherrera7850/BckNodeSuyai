@@ -26,7 +26,8 @@ var getConnection = /*#__PURE__*/function () {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            _context.next = 2;
+            _context.prev = 0;
+            _context.next = 3;
             return _promise["default"].createConnection({
               host: _config["default"].host,
               database: _config["default"].database,
@@ -35,16 +36,21 @@ var getConnection = /*#__PURE__*/function () {
               port: _config["default"].port
             });
 
-          case 2:
+          case 3:
             connection = _context.sent;
             return _context.abrupt("return", connection);
 
-          case 4:
+          case 7:
+            _context.prev = 7;
+            _context.t0 = _context["catch"](0);
+            console.log(_context.t0);
+
+          case 10:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee);
+    }, _callee, null, [[0, 7]]);
   }));
 
   return function getConnection() {

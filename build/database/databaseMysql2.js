@@ -14,13 +14,16 @@ var parameters = {
   port: _config["default"].port,
   connectionLimit: 10,
   multipleStatements: true
-};
-console.log("🚀 ~ file: databaseMysql2.js:12 ~ parameters:", parameters);
-
-var connection = _mysql["default"].createPool(parameters);
+}; //console.log("🚀 ~ file: databaseMysql2.js:12 ~ parameters:", parameters)
 
 var getConnectionMysql2 = function getConnectionMysql2() {
-  return connection;
+  try {
+    var connection = _mysql["default"].createPool(parameters);
+
+    return connection;
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 module.exports = {
