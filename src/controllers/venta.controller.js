@@ -1,4 +1,4 @@
-import moment from "moment";
+//import moment from "moment";
 import { getConnection } from "./../database/mysql2promise";
 
 const addVenta = async (req, res) => {
@@ -185,7 +185,7 @@ const getEstadisticas = async (req, res) => {
     }
 };
 
-const getBoletaDiaria = async (req, res) => {
+/* const getBoletaDiaria = async (req, res) => {
     try {
         const { Fecha } = req.params
         const connection = await getConnection();
@@ -212,7 +212,7 @@ const getBoletaDiaria = async (req, res) => {
         res.status(500);
         res.send(error.toString());
     }
-};
+}; */
 
 export const methods = {
     addVenta,
@@ -220,5 +220,5 @@ export const methods = {
     getEstadisticas,
     getVenta,
     deleteVenta,
-    getBoletaDiaria
+    //getBoletaDiaria
 };
