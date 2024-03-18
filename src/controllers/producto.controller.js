@@ -1,8 +1,8 @@
-import { getConnection } from "./../database/mysql2promise";
+import { queryMysql2 } from "../database/databaseMysql2.js";
 
 const getProductos = async (req, res) => {
     
-    const connection = await getConnection();
+    //const connection = await getConnection();
 
     // A simple SELECT query
     try {
@@ -12,7 +12,8 @@ const getProductos = async (req, res) => {
         qry += "GROUP by p._id "
         qry += "order by ventas desc"
 
-        const [results, fields] = await connection.query(qry);
+        const results = await queryMysql2(qry);
+
         console.log("🚀 ~ getProductos ~ results:", results)
         
         res.json(results);

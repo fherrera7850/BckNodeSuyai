@@ -23,6 +23,19 @@ var getConnectionMysql2 = function getConnectionMysql2() {
   return connection;
 };
 
+var queryMysql2 = function queryMysql2(query) {
+  return new Promise(function (resolve, reject) {
+    connection.query(query, function (error, results) {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+};
+
 module.exports = {
-  getConnectionMysql2: getConnectionMysql2
+  getConnectionMysql2: getConnectionMysql2,
+  queryMysql2: queryMysql2
 };

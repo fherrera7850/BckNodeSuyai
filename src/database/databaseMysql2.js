@@ -17,6 +17,19 @@ const getConnectionMysql2 = () => {
     return connection;
 };
 
+const queryMysql2 = (query) => {
+    return new Promise((resolve, reject) => {
+        connection.query(query, (error, results) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(results);
+            }
+        });
+    });
+};
+
 module.exports = {
-    getConnectionMysql2
+    getConnectionMysql2,
+    queryMysql2
 };
